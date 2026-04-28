@@ -1,0 +1,22 @@
+# Java
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env / secrets
+.env
+.env.*
+application-local.properties
+application-local.yml
