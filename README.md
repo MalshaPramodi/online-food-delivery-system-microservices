@@ -32,12 +32,24 @@ The system uses a Spring Cloud Gateway service as the single entry point for cli
 - Base URL: `http://localhost:9000`
 - Backend service routes will be added through Eureka-registered service names.
 
+## Restaurant Service
+
+The system uses a Spring Boot Restaurant service to manage restaurant and menu-related features.
+
+- Service name: `restaurant-service`
+- Port: `9002`
+- Eureka registration: `http://localhost:8761/eureka/`
+- Database: `restaurant_db`
+- Base URL: `http://localhost:9002`
+- This service will contain restaurant and menu APIs.
+
 ## Services
 
-| Service           | Description                                                                    | Port |
-| ----------------- | ------------------------------------------------------------------------------ | ---: |
-| Service Discovery | Eureka server used by backend services for service registration and discovery. | 8761 |
-| API Gateway       | Entry point for client requests and Eureka-registered service routing.         | 9000 |
+| Service            | Description                                                                    | Port |
+| ------------------ | ------------------------------------------------------------------------------ | ---: |
+| Service Discovery  | Eureka server used by backend services for service registration and discovery. | 8761 |
+| API Gateway        | Entry point for client requests and Eureka-registered service routing.         | 9000 |
+| Restaurant Service | Manages restaurant and menu-related features.                                  | 9002 |
 
 ## Running Services Locally
 
@@ -45,13 +57,18 @@ Run each service from its own folder.
 
 ### Service Discovery
 
-````bash
+```bash
 cd service-discovery
 mvn spring-boot:run
 
+Start Service Discovery first, then run:
+
 ### API Gateway
-```bash
 cd api-gateway
 mvn spring-boot:run
 
-````
+### Order Service
+cd order-service
+mvn spring-boot:run
+
+```
