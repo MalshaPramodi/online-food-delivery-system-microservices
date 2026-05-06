@@ -12,3 +12,12 @@ Microservices-based online food delivery platform with API Gateway, service disc
 - Payment Service
 - Frontend
 - Infrastructure and Docker support
+
+## Service Discovery
+
+The system uses a Spring Cloud Netflix Eureka server for service discovery.
+
+- Service name: `service-discovery`
+- Port: `8761`
+- Dashboard: `http://localhost:8761`
+- Other backend services will register with this server later.
