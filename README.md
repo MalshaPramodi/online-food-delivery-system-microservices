@@ -43,6 +43,17 @@ The system uses a Spring Boot Restaurant service to manage restaurant and menu-r
 - Base URL: `http://localhost:9002`
 - This service will contain restaurant and menu APIs.
 
+## Customer Service
+
+The system uses a Spring Boot Customer service to manage customer-related features.
+
+- Service name: `customer-service`
+- Port: `9003`
+- Eureka registration: `http://localhost:8761/eureka/`
+- Database: `customer_db`
+- Base URL: `http://localhost:9003`
+- This service will contain customer, address, and customer payment information APIs.
+
 ## Services
 
 | Service            | Description                                                                    | Port |
@@ -50,14 +61,14 @@ The system uses a Spring Boot Restaurant service to manage restaurant and menu-r
 | Service Discovery  | Eureka server used by backend services for service registration and discovery. | 8761 |
 | API Gateway        | Entry point for client requests and Eureka-registered service routing.         | 9000 |
 | Restaurant Service | Manages restaurant and menu-related features.                                  | 9002 |
+| Customer Service   | Manages customer profile, address, and payment information.                    | 9003 |
 
 ## Running Services Locally
 
 Run each service from its own folder.
 
-### Service Discovery
-
 ```bash
+### Service Discovery
 cd service-discovery
 mvn spring-boot:run
 
@@ -69,6 +80,14 @@ mvn spring-boot:run
 
 ### Order Service
 cd order-service
+mvn spring-boot:run
+
+### Restaurant Service
+cd restaurant-service
+mvn spring-boot:run
+
+### Customer Service
+cd customer-service
 mvn spring-boot:run
 
 ```
