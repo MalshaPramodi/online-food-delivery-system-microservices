@@ -53,6 +53,12 @@ The system uses a Spring Boot Restaurant service to manage restaurant and menu-r
 | PUT    | `/restaurants/{id}` | Update a restaurant by ID |
 | DELETE | `/restaurants/{id}` | Delete a restaurant by ID |
 
+Restaurant APIs can be accessed through the API Gateway using:
+
+```text
+http://localhost:9000/restaurants
+```
+
 Example create request:
 
 ```json
