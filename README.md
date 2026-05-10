@@ -55,14 +55,14 @@ The system uses a Spring Boot Restaurant service to manage restaurant and menu-r
 
 Example create request:
 
-````json
+```json
 {
   "name": "Pizza Palace",
   "location": "Colombo",
   "cuisineType": "Italian",
   "active": true
 }
-
+```
 
 ## Customer Service
 
@@ -111,4 +111,4 @@ mvn spring-boot:run
 cd customer-service
 mvn spring-boot:run
 
-````
+```
