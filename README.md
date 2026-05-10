@@ -43,6 +43,27 @@ The system uses a Spring Boot Restaurant service to manage restaurant and menu-r
 - Base URL: `http://localhost:9002`
 - This service will contain restaurant and menu APIs.
 
+### Restaurant Service REST Endpoints
+
+| Method | Endpoint            | Description               |
+| ------ | ------------------- | ------------------------- |
+| POST   | `/restaurants`      | Create a new restaurant   |
+| GET    | `/restaurants`      | Get all restaurants       |
+| GET    | `/restaurants/{id}` | Get a restaurant by ID    |
+| PUT    | `/restaurants/{id}` | Update a restaurant by ID |
+| DELETE | `/restaurants/{id}` | Delete a restaurant by ID |
+
+Example create request:
+
+````json
+{
+  "name": "Pizza Palace",
+  "location": "Colombo",
+  "cuisineType": "Italian",
+  "active": true
+}
+
+
 ## Customer Service
 
 The system uses a Spring Boot Customer service to manage customer-related features.
@@ -90,4 +111,4 @@ mvn spring-boot:run
 cd customer-service
 mvn spring-boot:run
 
-```
+````
