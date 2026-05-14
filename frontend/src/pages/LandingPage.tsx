@@ -89,6 +89,12 @@ export function LandingPage() {
             >
               Open Ops Panel
             </Link>
+            <Link
+              to="/restaurant/dashboard"
+              className="rounded-lg bg-[#FE5826] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E84F21] sm:text-sm"
+            >
+              Restaurant Portal
+            </Link>
           </div>
         </header>
 
@@ -134,6 +140,12 @@ export function LandingPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-[#476E00] bg-white px-5 py-3 text-sm font-semibold text-[#476E00] transition hover:bg-[#EEF7E6]"
               >
                 Start Ordering
+              </Link>
+              <Link
+                to="/restaurant/dashboard"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#FE5826] bg-white px-5 py-3 text-sm font-semibold text-[#FE5826] transition hover:bg-orange-50"
+              >
+                Restaurant Portal
               </Link>
             </div>
           </div>
