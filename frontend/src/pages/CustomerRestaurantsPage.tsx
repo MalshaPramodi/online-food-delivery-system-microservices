@@ -1,8 +1,24 @@
 import { Star } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { restaurants } from '../mocks/customerData'
+import { getRestaurants } from '../api/restaurantApi'
+
+const restaurantImages = [
+  'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80',
+]
 
 export function CustomerRestaurantsPage() {
+  const {
+    data: restaurants = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['restaurants'],
+    queryFn: getRestaurants,
+  })
+
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -14,36 +30,52 @@ export function CustomerRestaurantsPage() {
         </p>
       </div>
 
+      {isLoading ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500 shadow-sm">
+          Loading restaurants...
+        </div>
+      ) : null}
+
+      {isError ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-sm text-rose-700 shadow-sm">
+          Unable to load restaurants. Please check that Restaurant Service is
+          running on port 9002.
+        </div>
+      ) : null}
+
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {restaurants.map((restaurant) => (
+        {restaurants.map((restaurant, index) => (
           <article
             key={restaurant.id}
             className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <img
-              src={restaurant.heroImage}
-              alt={restaurant.name}
+              src={restaurantImages[index % restaurantImages.length]}
+              alt={restaurant.restaurantName}
               className="h-44 w-full object-cover"
             />
             <div className="space-y-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    {restaurant.name}
+                    {restaurant.restaurantName}
                   </h2>
-                  <p className="text-sm text-slate-500">{restaurant.catalog}</p>
+                  <p className="text-sm text-slate-500">
+                    {restaurant.restaurantCatalog}
+                  </p>
                 </div>
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
                   <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                  {restaurant.rating}
+                  4.{7 + (index % 2)}
                 </span>
               </div>
               <p className="text-sm leading-6 text-slate-600">
-                {restaurant.shortDescription}
+                Fresh meals from {restaurant.restaurantName}, available for fast
+                delivery.
               </p>
               <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                <span>{restaurant.deliveryTime}</span>
-                <span>Delivery {restaurant.deliveryFee}</span>
+                <span>{restaurant.address?.city ?? 'Local area'}</span>
+                <span>{restaurant.address?.country ?? 'Delivery available'}</span>
               </div>
               <Link
                 to={`/restaurants/${restaurant.id}`}
