@@ -70,6 +70,34 @@ Example create request:
 }
 ```
 
+### Food Menu REST Endpoints
+
+| Method | Endpoint                            | Description                          |
+| ------ | ----------------------------------- | ------------------------------------ |
+| POST   | `/restaurants/{restaurantId}/menus` | Add a food menu item to a restaurant |
+| GET    | `/restaurants/{restaurantId}/menus` | Get all menu items for a restaurant  |
+| GET    | `/restaurants/menus/{menuId}`       | Get a menu item by ID                |
+| PUT    | `/restaurants/menus/{menuId}`       | Update a menu item                   |
+| DELETE | `/restaurants/menus/{menuId}`       | Delete a menu item                   |
+
+Food Menu APIs can be accessed through the API Gateway using:
+
+````text
+http://localhost:9000/restaurants/{restaurantId}/menus
+http://localhost:9000/restaurants/menus/{menuId}
+
+Example create request:
+
+```json
+{
+  "foodName": "Chicken Pizza",
+  "foodDescription": "Large chicken pizza with cheese",
+  "foodCategory": "Pizza",
+  "foodPrice": 2500.00,
+  "available": true
+}
+````
+
 ## Customer Service
 
 The system uses a Spring Boot Customer service to manage customer-related features.
