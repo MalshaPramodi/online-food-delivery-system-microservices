@@ -121,8 +121,30 @@ The system uses a Spring Boot Customer service to manage customer-related featur
 
 Customer APIs can be accessed through the API Gateway using:
 
-````text
+```text
 http://localhost:9000/customers
+
+```
+
+### Customer Address REST Endpoints
+
+The Customer Service supports managing multiple delivery addresses for each customer. A customer profile can be created first, and one or more addresses can be added later using the customer address APIs.
+
+| Method | Endpoint                            | Description                     |
+| ------ | ----------------------------------- | ------------------------------- |
+| POST   | `/customers/{customerId}/addresses` | Add an address for a customer   |
+| GET    | `/customers/{customerId}/addresses` | Get all addresses of a customer |
+| GET    | `/customers/addresses/{addressId}`  | Get an address by ID            |
+| PUT    | `/customers/addresses/{addressId}`  | Update an address               |
+| DELETE | `/customers/addresses/{addressId}`  | Delete an address               |
+
+Customer Address APIs can be accessed through the API Gateway using:
+
+```text
+http://localhost:9000/customers/{customerId}/addresses
+http://localhost:9000/customers/addresses/{addressId}
+
+```
 
 ## Services
 
@@ -132,7 +154,6 @@ http://localhost:9000/customers
 | API Gateway        | Entry point for client requests and Eureka-registered service routing.         | 9000 |
 | Restaurant Service | Manages restaurant and menu-related features.                                  | 9002 |
 | Customer Service   | Manages customer profile, address, and payment information.                    | 9003 |
-
 
 ## Docker Database Setup
 
@@ -147,7 +168,7 @@ The project uses Docker Compose to run PostgreSQL databases for the backend serv
 
 Run this command from the project root folder:
 
-```bash
+````bash
 docker compose up -d
 
 ### Functionality
