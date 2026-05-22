@@ -209,7 +209,7 @@ Docker helps the project by:
 
 localhost:5433 -> restaurant-db container -> restaurant_db
 localhost:5434 -> customer-db container -> customer_db
-
+order-service  -> localhost:5435 -> order-db container-> order_db
 
 ## Running Services Locally
 

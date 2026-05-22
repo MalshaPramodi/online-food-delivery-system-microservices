@@ -23,6 +23,19 @@ services:
     volumes:
       - customer_db_data:/var/lib/postgresql/data
 
+  order-db:
+    image: postgres:16
+    container_name: order-db
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+
 volumes:
   restaurant_db_data:
   customer_db_data:
+  order_db_data:
