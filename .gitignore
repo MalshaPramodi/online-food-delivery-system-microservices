@@ -15,6 +15,13 @@ Thumbs.db
 # Logs
 *.log
 
+# Node / frontend
+**/node_modules/
+**/dist/
+**/.vite/
+**/node_modules/.vite/
+*.tsbuildinfo
+
 # Env / secrets
 .env
 .env.*

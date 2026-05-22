@@ -70,6 +70,34 @@ Example create request:
 }
 ```
 
+### Food Menu REST Endpoints
+
+| Method | Endpoint                            | Description                          |
+| ------ | ----------------------------------- | ------------------------------------ |
+| POST   | `/restaurants/{restaurantId}/menus` | Add a food menu item to a restaurant |
+| GET    | `/restaurants/{restaurantId}/menus` | Get all menu items for a restaurant  |
+| GET    | `/restaurants/menus/{menuId}`       | Get a menu item by ID                |
+| PUT    | `/restaurants/menus/{menuId}`       | Update a menu item                   |
+| DELETE | `/restaurants/menus/{menuId}`       | Delete a menu item                   |
+
+Food Menu APIs can be accessed through the API Gateway using:
+
+````text
+http://localhost:9000/restaurants/{restaurantId}/menus
+http://localhost:9000/restaurants/menus/{menuId}
+
+Example create request:
+
+```json
+{
+  "foodName": "Chicken Pizza",
+  "foodDescription": "Large chicken pizza with cheese",
+  "foodCategory": "Pizza",
+  "foodPrice": 2500.00,
+  "available": true
+}
+````
+
 ## Customer Service
 
 The system uses a Spring Boot Customer service to manage customer-related features.
@@ -104,6 +132,43 @@ http://localhost:9000/customers
 | API Gateway        | Entry point for client requests and Eureka-registered service routing.         | 9000 |
 | Restaurant Service | Manages restaurant and menu-related features.                                  | 9002 |
 | Customer Service   | Manages customer profile, address, and payment information.                    | 9003 |
+
+
+## Docker Database Setup
+
+The project uses Docker Compose to run PostgreSQL databases for the backend services. This allows each developer to start the required databases without manually creating them in a local PostgreSQL installation.
+
+### Required Tools
+
+- Docker Desktop
+- Docker Compose
+
+### Start Databases
+
+Run this command from the project root folder:
+
+```bash
+docker compose up -d
+
+### Functionality
+
+Docker is used to support the distributed nature of the system by providing isolated and reproducible infrastructure components. In this project, Docker Compose runs separate PostgreSQL database containers for the Restaurant Service and Customer Service.
+
+Each microservice has its own database, which follows the database-per-service pattern commonly used in microservice architectures. Docker allows these databases to run as independent containers with separate ports, storage volumes, and configuration.
+
+In the current implementation, the Spring Boot services run locally using Maven, while the database layer runs in Docker. This setup helps demonstrate distributed system principles such as service independence, isolated data ownership, environment consistency, and infrastructure reproducibility.
+
+Docker helps the project by:
+
+- running separate database instances for different microservices
+- supporting the database-per-service architecture
+- reducing dependency on manually configured local databases
+- giving all developers a consistent environment
+- making the system easier to run, test, and demonstrate
+
+localhost:5433 -> restaurant-db container -> restaurant_db
+localhost:5434 -> customer-db container -> customer_db
+
 
 ## Running Services Locally
 
