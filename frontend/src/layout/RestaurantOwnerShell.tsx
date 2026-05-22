@@ -1,6 +1,15 @@
-import { BarChart3, ClipboardList, Home, MenuSquare, Settings, UtensilsCrossed } from 'lucide-react'
+import {
+  BarChart3,
+  ClipboardList,
+  LogOut,
+  MenuSquare,
+  Settings,
+  UtensilsCrossed,
+} from 'lucide-react'
 import type { ComponentType } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/AuthContext'
+import { restaurantProfile } from '../mocks/restaurantOwnerData'
 
 type OwnerNavItem = {
   to: string
@@ -16,6 +25,15 @@ const ownerNavItems: OwnerNavItem[] = [
 ]
 
 export function RestaurantOwnerShell() {
+  const { logout, user } = useAuth()
+  const navigate = useNavigate()
+  const restaurantName = user?.restaurantName ?? restaurantProfile.name
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF8F1] text-slate-900">
       <header className="sticky top-0 z-20 border-b border-orange-100 bg-white/95 backdrop-blur">
@@ -27,13 +45,19 @@ export function RestaurantOwnerShell() {
               </span>
               Online Food Delivery
             </NavLink>
-            <NavLink
-              to="/restaurants"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              <Home className="h-4 w-4" />
-              Customer view
-            </NavLink>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="hidden rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm font-medium text-slate-700 sm:inline-flex">
+                {restaurantName}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
           </div>
 
           <nav className="flex gap-2 overflow-x-auto pb-1">

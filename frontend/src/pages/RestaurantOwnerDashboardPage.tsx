@@ -1,4 +1,5 @@
 import { Clock3, Star, TrendingUp } from 'lucide-react'
+import { useAuth } from '../features/auth/AuthContext'
 import { ownerOrders, ownerStats, restaurantProfile } from '../mocks/restaurantOwnerData'
 
 const statusStyles: Record<string, string> = {
@@ -9,6 +10,9 @@ const statusStyles: Record<string, string> = {
 }
 
 export function RestaurantOwnerDashboardPage() {
+  const { user } = useAuth()
+  const restaurantName = user?.restaurantName ?? restaurantProfile.name
+
   return (
     <section className="space-y-6">
       <article className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm">
@@ -18,7 +22,7 @@ export function RestaurantOwnerDashboardPage() {
               Restaurant owner portal
             </span>
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              {restaurantProfile.name}
+              {restaurantName}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
               Manage incoming orders, update your menu, and keep restaurant details ready for customers.
