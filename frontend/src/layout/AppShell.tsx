@@ -1,12 +1,14 @@
 import {
   LayoutDashboard,
+  LogOut,
   Store,
   Users,
   ShoppingBag,
   WalletCards,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/AuthContext'
 
 type NavItem = {
   to: string
@@ -27,6 +29,14 @@ const activeLinkClasses =
 const idleLinkClasses = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
 
 export function AppShell() {
+  const { logout, user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="min-h-screen bg-slate-100">
       <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col lg:flex-row">
@@ -73,8 +83,18 @@ export function AppShell() {
                   Food Delivery Management
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                API via gateway: <span className="font-medium">localhost:9000</span>
+              <div className="flex items-center gap-3">
+                <div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 sm:block">
+                  {user?.name ?? 'Admin'}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
               </div>
             </div>
           </header>

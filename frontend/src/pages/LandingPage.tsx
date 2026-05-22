@@ -3,11 +3,13 @@ import {
   Bike,
   CheckCircle2,
   Clock3,
+  LogOut,
   MapPin,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/AuthContext'
 
 const highlights = [
   {
@@ -55,6 +57,14 @@ const foodShowcase = [
 ]
 
 export function LandingPage() {
+  const { logout, user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#FFFFFF] via-[#FFF5E9] to-[#EEF7E6] text-[#040409]">
       <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
@@ -75,20 +85,26 @@ export function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <a
-              href="http://localhost:9000"
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              to="/restaurants"
               className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100 sm:text-sm"
             >
-              API Gateway
-            </a>
+              Restaurants
+            </Link>
             <Link
-              to="/ops/dashboard"
+              to="/my-orders"
               className="rounded-lg bg-[#476E00] px-3 py-2 text-xs font-semibold text-white transition hover:brightness-110 sm:text-sm"
             >
-              Open Ops Panel
+              My Orders
             </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#FE5826] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E84F21] sm:text-sm"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
           </div>
         </header>
 
@@ -105,8 +121,8 @@ export function LandingPage() {
               and fast.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              Discover top-rated restaurants, place orders in seconds, and track every
-              step in real-time with a modern delivery experience.
+              Welcome back{user?.name ? `, ${user.name}` : ''}. Discover top-rated
+              restaurants, place orders in seconds, and track every step in real-time.
             </p>
             <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-700">
               <span className="inline-flex items-center gap-2">
@@ -134,6 +150,12 @@ export function LandingPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-[#476E00] bg-white px-5 py-3 text-sm font-semibold text-[#476E00] transition hover:bg-[#EEF7E6]"
               >
                 Start Ordering
+              </Link>
+              <Link
+                to="/my-orders"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#FE5826] bg-white px-5 py-3 text-sm font-semibold text-[#FE5826] transition hover:bg-orange-50"
+              >
+                View Orders
               </Link>
             </div>
           </div>

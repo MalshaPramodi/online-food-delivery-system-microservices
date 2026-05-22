@@ -10,21 +10,21 @@ const restaurantApi = axios.create({
 })
 
 export async function getRestaurants() {
-  const response = await restaurantApi.get<Restaurant[]>('/restaurant/all')
+  const response = await restaurantApi.get<Restaurant[]>('/restaurants')
   return response.data
 }
 
 export async function getRestaurant(id: string | number) {
-  const response = await restaurantApi.get<Restaurant>(`/restaurant/${id}`)
+  const response = await restaurantApi.get<Restaurant>(`/restaurants/${id}`)
   return response.data
 }
 
 export async function getRestaurantMenu(id: string | number) {
-  const response = await restaurantApi.get<FoodMenu[]>(`/restaurant/${id}/menu`)
+  const response = await restaurantApi.get<FoodMenu[]>(`/restaurants/${id}/menu`)
   return response.data
 }
 
 export async function createRestaurant(input: CreateRestaurantInput) {
-  const response = await restaurantApi.post<number>('/restaurant/create', input)
+  const response = await restaurantApi.post<Restaurant>('/restaurants', input)
   return response.data
 }

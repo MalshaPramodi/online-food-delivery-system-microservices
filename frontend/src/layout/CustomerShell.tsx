@@ -1,9 +1,17 @@
-import { ShoppingBag, UtensilsCrossed } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { LogOut, ShoppingBag, UtensilsCrossed } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/AuthContext'
 import { useCart } from '../features/cart/CartContext'
 
 export function CustomerShell() {
   const { totalItems } = useCart()
+  const { logout, user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -48,6 +56,23 @@ export function CustomerShell() {
               <ShoppingBag className="h-4 w-4" />
               Cart ({totalItems})
             </NavLink>
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Login
+              </NavLink>
+            )}
           </nav>
         </div>
       </header>
