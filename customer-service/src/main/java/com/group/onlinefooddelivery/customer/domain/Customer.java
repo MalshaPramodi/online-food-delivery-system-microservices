@@ -25,10 +25,6 @@ public class Customer {
     @Column(nullable = false)
     private String phone;
 
-    @NotBlank
-    @Column(nullable = false)
-    private String address;
-
     private boolean active = true;
 
     public Customer() {
@@ -39,7 +35,6 @@ public class Customer {
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
-        this.address = address;
         this.active = active;
     }
 
@@ -73,14 +68,6 @@ public class Customer {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public boolean isActive() {
