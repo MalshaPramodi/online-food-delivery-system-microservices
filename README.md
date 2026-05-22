@@ -81,6 +81,21 @@ The system uses a Spring Boot Customer service to manage customer-related featur
 - Base URL: `http://localhost:9003`
 - This service will contain customer, address, and customer payment information APIs.
 
+### Customer Service REST Endpoints
+
+| Method | Endpoint          | Description             |
+| ------ | ----------------- | ----------------------- |
+| POST   | `/customers`      | Create a new customer   |
+| GET    | `/customers`      | Get all customers       |
+| GET    | `/customers/{id}` | Get a customer by ID    |
+| PUT    | `/customers/{id}` | Update a customer by ID |
+| DELETE | `/customers/{id}` | Delete a customer by ID |
+
+Customer APIs can be accessed through the API Gateway using:
+
+````text
+http://localhost:9000/customers
+
 ## Services
 
 | Service            | Description                                                                    | Port |
@@ -117,4 +132,4 @@ mvn spring-boot:run
 cd customer-service
 mvn spring-boot:run
 
-```
+````
