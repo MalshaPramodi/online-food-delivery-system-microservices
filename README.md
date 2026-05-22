@@ -146,6 +146,26 @@ http://localhost:9000/customers/addresses/{addressId}
 
 ```
 
+### Customer Payment Method REST Endpoints
+
+The Customer Service supports storing customer payment method details for future checkout and payment workflows. This stores customer payment method metadata only. Actual payment processing is handled separately by the Payment Service.
+
+| Method | Endpoint                                       | Description                           |
+| ------ | ---------------------------------------------- | ------------------------------------- |
+| POST   | `/customers/{customerId}/payment-methods`      | Add a payment method for a customer   |
+| GET    | `/customers/{customerId}/payment-methods`      | Get all payment methods of a customer |
+| GET    | `/customers/payment-methods/{paymentMethodId}` | Get a payment method by ID            |
+| PUT    | `/customers/payment-methods/{paymentMethodId}` | Update a payment method               |
+| DELETE | `/customers/payment-methods/{paymentMethodId}` | Delete a payment method               |
+
+Customer Payment Method APIs can be accessed through the API Gateway using:
+
+```text
+http://localhost:9000/customers/{customerId}/payment-methods
+http://localhost:9000/customers/payment-methods/{paymentMethodId}
+
+```
+
 ## Services
 
 | Service            | Description                                                                    | Port |
