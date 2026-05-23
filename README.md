@@ -166,14 +166,120 @@ http://localhost:9000/customers/payment-methods/{paymentMethodId}
 
 ```
 
+`````
+
+## Order Service
+
+The system uses a Spring Boot Order service to manage customer orders and order history.
+
+- Service name: `order-service`
+- Port: `9001`
+- Eureka registration: `http://localhost:8761/eureka/`
+- Database: `order_db`
+- Base URL: `http://localhost:9001`
+- This service contains order creation and order query APIs.
+
+### Order Service REST Endpoints
+
+| Method | Endpoint                           | Description                     |
+| ------ | ---------------------------------- | ------------------------------- |
+| POST   | `/order/create`                    | Create a new order              |
+| GET    | `/order/{orderId}`                 | Get an order by ID              |
+| GET    | `/order/user/{userId}`             | Get all orders for a customer   |
+| GET    | `/order/restaurant-orders/{id}`    | Get all orders for a restaurant |
+| GET    | `/order/restaurant/{restaurantId}` | Get restaurant details          |
+
+Order APIs can be accessed through the API Gateway using:
+
+```text
+http://localhost:9000/order
+```
+
+Example create order request:
+
+```json
+{
+  "userId": 1,
+  "restaurantId": 1,
+  "restaurantName": "Pizza House",
+  "totalPrice": 2500,
+  "foodItems": [
+    {
+      "foodMenuId": 1,
+      "foodName": "Chicken Pizza",
+      "foodPrice": 2000,
+      "quantity": 1
+    },
+    {
+      "foodMenuId": 2,
+      "foodName": "Coke",
+      "foodPrice": 500,
+      "quantity": 1
+    }
+  ]
+}
+```
+
+## Payment Service
+
+The system uses a Spring Boot Payment service to manage payment processing and payment history.
+
+- Service name: `payment-service`
+- Port: `9004`
+- Eureka registration: `http://localhost:8761/eureka/`
+- Database: `payment_db`
+- Base URL: `http://localhost:9004`
+- This service contains payment creation and payment history APIs.
+
+### Payment Service REST Endpoints
+
+| Method | Endpoint                   | Description                     |
+| ------ | -------------------------- | ------------------------------- |
+| POST   | `/payment/save`            | Save/process a payment          |
+| GET    | `/payment/all`             | Get all payments                |
+| GET    | `/payment/{id}`            | Get payment by ID               |
+| GET    | `/payment/order/{orderId}` | Get payment history by order ID |
+
+Payment APIs can be accessed through the API Gateway using:
+
+```text
+http://localhost:9000/payment
+```
+
+Example payment request:
+
+```json
+{
+  "orderId": 1,
+  "customerId": 1,
+  "totalPrice": 2500
+}
+```
+
+Expected payment response:
+
+```json
+{
+  "id": 1,
+  "orderId": 1,
+  "customerId": 1,
+  "paymentTime": "2026-05-23T20:00:00",
+  "totalPrice": 2500,
+  "orderStatus": "PAID"
+}
+```
+
 ## Services
 
 | Service            | Description                                                                    | Port |
 | ------------------ | ------------------------------------------------------------------------------ | ---: |
 | Service Discovery  | Eureka server used by backend services for service registration and discovery. | 8761 |
 | API Gateway        | Entry point for client requests and Eureka-registered service routing.         | 9000 |
+| Order Service      | Manages customer orders and order history.                                     | 9001 |
 | Restaurant Service | Manages restaurant and menu-related features.                                  | 9002 |
 | Customer Service   | Manages customer profile, address, and payment information.                    | 9003 |
+| Payment Service    | Manages payment processing and payment history.                                | 9004 |
+
 
 ## Docker Database Setup
 
@@ -209,7 +315,16 @@ Docker helps the project by:
 
 localhost:5433 -> restaurant-db container -> restaurant_db
 localhost:5434 -> customer-db container -> customer_db
-order-service  -> localhost:5435 -> order-db container-> order_db
+order-service  -> localhost:5435 -> order-db container-> order_dborder-service -> order_db
+payment-service -> payment_db
+
+Create these databases in PostgreSQL for Order and Payment services:
+
+```sql
+CREATE DATABASE order_db;
+CREATE DATABASE payment_db;
+```
+
 
 ## Running Services Locally
 
@@ -238,4 +353,8 @@ mvn spring-boot:run
 cd customer-service
 mvn spring-boot:run
 
-````
+### Payment Service
+cd payment-service
+mvn spring-boot:run
+
+`````
