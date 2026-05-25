@@ -41,3 +41,11 @@ export type OrderPreview = {
   status: 'Preparing' | 'On the way' | 'Delivered'
   placedAt: string
 }
+
+export type Customer = {
+  id: number
+  fullName: string
+  email: string
+  phone: string
+  active: boolean
+}
