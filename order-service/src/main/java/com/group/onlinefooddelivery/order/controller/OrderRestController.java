@@ -51,6 +51,11 @@ public class OrderRestController {
         return "Order has been placed successfully";
     }
 
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderService.findAll();
+    }
+
     @GetMapping("/{orderId}")
     public Order getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderByOrderId(orderId);
