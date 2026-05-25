@@ -10,6 +10,7 @@ import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.Payment;
 import com.group.onlinefooddelivery.order.repository.OrderRepository;
 import com.group.onlinefooddelivery.order.service.OrderService;
+import com.group.onlinefooddelivery.order.domain.Notification;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -19,6 +20,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${payment.microservice.url}")
     private String paymentServiceUrl;
+
+    @Value("${notification.microservice.url}")
+    private String notificationServiceUrl;
+
+    @Override
+    public void sendOrderCreatedNotification(Order order) {
+        Notification notification = new Notification();
+        notification.setCustomerId(order.getUserId());
+        notification.setOrderId(order.getId());
+        notification.setType("ORDER_CREATED");
+        notification.setChannel("EMAIL");
+        notification.setMessage("Your order has been placed successfully.");
+
+        restTemplate.postForObject(notificationServiceUrl, notification, Notification.class);
+    }
 
     public OrderServiceImpl(OrderRepository orderRepository, RestTemplate restTemplate) {
         this.orderRepository = orderRepository;

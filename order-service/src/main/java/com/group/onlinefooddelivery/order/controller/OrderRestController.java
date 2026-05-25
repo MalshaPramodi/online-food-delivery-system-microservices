@@ -38,6 +38,8 @@ public class OrderRestController {
     public String placeOrder(@Valid @RequestBody Order order) {
         Order savedOrder = orderService.saveOrder(order);
 
+        orderService.sendOrderCreatedNotification(savedOrder);
+
         Payment paymentResponse = orderService.getPaymentResponse(savedOrder);
 
         if (paymentResponse != null && paymentResponse.getOrderStatus() == OrderStatus.PAID) {

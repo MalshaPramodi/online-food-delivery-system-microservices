@@ -18,4 +18,6 @@ public interface OrderService {
     List<Order> getAllOrdersByRestaurantId(Long restaurantId);
 
     Payment getPaymentResponse(Order order);
+
+    void sendOrderCreatedNotification(Order order);
 }
