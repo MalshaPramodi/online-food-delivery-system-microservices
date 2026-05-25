@@ -5,10 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/restaurant-api': {
-        target: 'http://localhost:9002',
+      '/api': {
+        target: 'http://localhost:9000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/restaurant-api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

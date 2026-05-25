@@ -6,7 +6,7 @@ import type {
 } from '../types/restaurant'
 
 const restaurantApi = axios.create({
-  baseURL: '/restaurant-api',
+  baseURL: '/api',
 })
 
 export async function getRestaurants() {
@@ -20,7 +20,7 @@ export async function getRestaurant(id: string | number) {
 }
 
 export async function getRestaurantMenu(id: string | number) {
-  const response = await restaurantApi.get<FoodMenu[]>(`/restaurants/${id}/menu`)
+  const response = await restaurantApi.get<FoodMenu[]>(`/restaurants/${id}/menus`)
   return response.data
 }
 
