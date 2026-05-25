@@ -17,8 +17,8 @@ import com.group.onlinefooddelivery.payment.service.PaymentService;
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 
-    @Value("${customer.management.validate.cc}")
-    private String customerCreditCardUrl;
+    @Value("${customer.payment-methods.url}")
+    private String customerPaymentMethodsUrl;
 
     private final RestTemplate restTemplate;
     private final PaymentRepository paymentRepository;
@@ -62,7 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public CreditCard getCrediCardDetails(Long customerId) {
-        return restTemplate.getForObject(customerCreditCardUrl + customerId, CreditCard.class);
+        return restTemplate.getForObject(customerPaymentMethodsUrl + customerId, CreditCard.class);
     }
 
     @Override
