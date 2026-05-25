@@ -36,6 +36,18 @@ public class OrderServiceImpl implements OrderService {
         restTemplate.postForObject(notificationServiceUrl, notification, Notification.class);
     }
 
+    @Override
+    public void sendPaymentCompletedNotification(Order order) {
+        Notification notification = new Notification();
+        notification.setCustomerId(order.getUserId());
+        notification.setOrderId(order.getId());
+        notification.setType("PAYMENT_COMPLETED");
+        notification.setChannel("EMAIL");
+        notification.setMessage("Your payment has been completed successfully.");
+
+        restTemplate.postForObject(notificationServiceUrl, notification, Notification.class);
+    }
+
     public OrderServiceImpl(OrderRepository orderRepository, RestTemplate restTemplate) {
         this.orderRepository = orderRepository;
         this.restTemplate = restTemplate;

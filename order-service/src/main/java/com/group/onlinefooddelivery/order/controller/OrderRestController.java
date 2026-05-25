@@ -45,6 +45,7 @@ public class OrderRestController {
         if (paymentResponse != null && paymentResponse.getOrderStatus() == OrderStatus.PAID) {
             savedOrder.setOrderStatus(OrderStatus.PAID);
             orderService.saveOrder(savedOrder);
+            orderService.sendPaymentCompletedNotification(savedOrder);
         }
 
         return "Order has been placed successfully";
