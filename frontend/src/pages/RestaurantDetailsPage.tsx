@@ -61,17 +61,17 @@ export function RestaurantDetailsPage() {
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <img
           src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1400&q=80"
-          alt={restaurant.restaurantName}
+          alt={restaurant.name}
           className="h-64 w-full object-cover"
         />
         <div className="space-y-4 p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                {restaurant.restaurantName}
+                {restaurant.name}
               </h1>
               <p className="mt-1 text-slate-500">
-                {restaurant.restaurantCatalog}
+                {restaurant.cuisineType}
               </p>
             </div>
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
@@ -80,14 +80,13 @@ export function RestaurantDetailsPage() {
             </span>
           </div>
           <p className="text-sm leading-6 text-slate-600">
-            Browse the latest menu from {restaurant.restaurantName}. Orders are
+            Browse the latest menu from {restaurant.name}. Orders are
             prepared by the restaurant service data stored in the backend.
           </p>
           <div className="flex flex-wrap gap-2">
             {[
-              restaurant.address?.street,
-              restaurant.address?.city,
-              restaurant.address?.country,
+              restaurant.location,
+              restaurant.cuisineType,
             ]
               .filter(Boolean)
               .map((category) => (
@@ -126,7 +125,7 @@ export function RestaurantDetailsPage() {
                     {item.foodName}
                   </h3>
                   <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
-                    {item.foodCatalog}
+                    {item.foodCategory}
                   </span>
                 </div>
                 <p className="text-sm text-slate-600">{item.foodDescription}</p>
@@ -139,7 +138,7 @@ export function RestaurantDetailsPage() {
                 onClick={() =>
                   addItem({
                     restaurantId: String(restaurant.id),
-                    restaurantName: restaurant.restaurantName,
+                    restaurantName: restaurant.name,
                     menuItemId: String(item.id),
                     name: item.foodName,
                     unitPrice: Number(item.foodPrice),

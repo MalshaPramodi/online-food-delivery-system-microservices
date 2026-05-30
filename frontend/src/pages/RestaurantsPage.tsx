@@ -6,8 +6,8 @@ import { createRestaurant, getRestaurants } from '../api/restaurantApi'
 export function RestaurantsPage() {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
-    restaurantName: '',
-    restaurantCatalog: '',
+    name: '',
+    cuisineType: '',
     street: '',
     city: '',
     state: '',
@@ -28,8 +28,8 @@ export function RestaurantsPage() {
     mutationFn: createRestaurant,
     onSuccess: () => {
       setForm({
-        restaurantName: '',
-        restaurantCatalog: '',
+        name: '',
+        cuisineType: '',
         street: '',
         city: '',
         state: '',
@@ -46,16 +46,16 @@ export function RestaurantsPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    // combine address fields into a single location string expected by the API
+    const location = [form.street, form.city, form.state, form.zip, form.country]
+      .filter(Boolean)
+      .join(', ')
+
     createMutation.mutate({
-      restaurantName: form.restaurantName,
-      restaurantCatalog: form.restaurantCatalog,
-      address: {
-        street: form.street,
-        city: form.city,
-        state: form.state,
-        zip: form.zip,
-        country: form.country,
-      },
+      name: form.name,
+      cuisineType: form.cuisineType,
+      location,
+      active: true,
     })
   }
 
@@ -80,8 +80,8 @@ export function RestaurantsPage() {
             required
             minLength={4}
             maxLength={32}
-            value={form.restaurantName}
-            onChange={(event) => updateField('restaurantName', event.target.value)}
+            value={form.name}
+            onChange={(event) => updateField('name', event.target.value)}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
             placeholder="Restaurant name"
           />
@@ -89,9 +89,9 @@ export function RestaurantsPage() {
             required
             minLength={4}
             maxLength={32}
-            value={form.restaurantCatalog}
+            value={form.cuisineType}
             onChange={(event) =>
-              updateField('restaurantCatalog', event.target.value)
+              updateField('cuisineType', event.target.value)
             }
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
             placeholder="Restaurant catalog"
@@ -163,16 +163,14 @@ export function RestaurantsPage() {
             >
               <div>
                 <h4 className="font-semibold text-slate-900">
-                  {restaurant.restaurantName}
+                  {restaurant.name}
                 </h4>
                 <p className="text-sm text-slate-500">
-                  {restaurant.restaurantCatalog}
+                  {restaurant.cuisineType}
                 </p>
               </div>
               <p className="text-sm text-slate-500">
-                {[restaurant.address?.city, restaurant.address?.country]
-                  .filter(Boolean)
-                  .join(', ') || 'Address not added'}
+                {restaurant.location || 'Address not added'}
               </p>
             </article>
           ))}

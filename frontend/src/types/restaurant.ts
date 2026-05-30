@@ -9,21 +9,24 @@ export type Address = {
 
 export type Restaurant = {
   id: number
-  restaurantName: string
-  restaurantCatalog: string
-  address?: Address | null
+  name: string
+  location: string
+  cuisineType: string
+  active: boolean
 }
 
 export type FoodMenu = {
   id: number
   foodName: string
   foodDescription: string
-  foodCatalog: string
+  foodCategory: string
   foodPrice: number | string
+  available: boolean
 }
 
 export type CreateRestaurantInput = {
-  restaurantName: string
-  restaurantCatalog: string
-  address: Address
+  name: string
+  location: string
+  cuisineType: string
+  active: boolean
 }

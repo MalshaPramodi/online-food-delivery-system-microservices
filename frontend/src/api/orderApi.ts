@@ -26,3 +26,21 @@ export async function getOrdersByRestaurant(restaurantId: string | number) {
   )
   return response.data
 }
+
+export type CreateOrderInput = {
+  userId: number
+  restaurantId: number
+  restaurantName: string
+  totalPrice: number
+  foodItems: {
+    foodMenuId: number
+    foodName: string
+    foodPrice: number
+    quantity: number
+  }[]
+}
+
+export async function createOrder(input: CreateOrderInput) {
+  const response = await orderApi.post<string>('/order/create', input)
+  return response.data
+}

@@ -51,17 +51,17 @@ export function CustomerRestaurantsPage() {
           >
             <img
               src={restaurantImages[index % restaurantImages.length]}
-              alt={restaurant.restaurantName}
+              alt={restaurant.name}
               className="h-44 w-full object-cover"
             />
             <div className="space-y-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    {restaurant.restaurantName}
+                    {restaurant.name}
                   </h2>
                   <p className="text-sm text-slate-500">
-                    {restaurant.restaurantCatalog}
+                    {restaurant.cuisineType ?? 'Restaurant'}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
@@ -70,12 +70,12 @@ export function CustomerRestaurantsPage() {
                 </span>
               </div>
               <p className="text-sm leading-6 text-slate-600">
-                Fresh meals from {restaurant.restaurantName}, available for fast
+                Fresh meals from {restaurant.name}, available for fast
                 delivery.
               </p>
               <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                <span>{restaurant.address?.city ?? 'Local area'}</span>
-                <span>{restaurant.address?.country ?? 'Delivery available'}</span>
+                <span>{restaurant.location}</span>
+                <span>{restaurant.active ? 'Open now' : 'Unavailable'}</span>
               </div>
               <Link
                 to={`/restaurants/${restaurant.id}`}
