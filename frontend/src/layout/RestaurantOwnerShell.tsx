@@ -6,10 +6,11 @@ import {
   Settings,
   UtensilsCrossed,
 } from 'lucide-react'
-import type { ComponentType } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { getRestaurant } from '../api/restaurantApi'
 import { useAuth } from '../features/auth/AuthContext'
-import { restaurantProfile } from '../mocks/restaurantOwnerData'
+import type { Restaurant } from '../types/restaurant'
 
 type OwnerNavItem = {
   to: string
@@ -27,7 +28,16 @@ const ownerNavItems: OwnerNavItem[] = [
 export function RestaurantOwnerShell() {
   const { logout, user } = useAuth()
   const navigate = useNavigate()
-  const restaurantName = user?.restaurantName ?? restaurantProfile.name
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
+
+  useEffect(() => {
+    getRestaurant(1)
+      .then(setRestaurant)
+      .catch(() => setRestaurant(null))
+  }, [])
+
+ const restaurantName =
+  restaurant?.name ?? user?.restaurantName ?? 'Restaurant'
 
   const handleLogout = () => {
     logout()
@@ -45,10 +55,12 @@ export function RestaurantOwnerShell() {
               </span>
               Online Food Delivery
             </NavLink>
+
             <div className="flex flex-wrap items-center gap-2">
               <span className="hidden rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm font-medium text-slate-700 sm:inline-flex">
                 {restaurantName}
               </span>
+
               <button
                 type="button"
                 onClick={handleLogout}
@@ -63,6 +75,7 @@ export function RestaurantOwnerShell() {
           <nav className="flex gap-2 overflow-x-auto pb-1">
             {ownerNavItems.map((item) => {
               const Icon = item.icon
+
               return (
                 <NavLink
                   key={item.to}
