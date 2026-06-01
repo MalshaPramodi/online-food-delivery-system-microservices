@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getOrdersByCustomer } from '../api/orderApi'
+import { useAuth } from '../features/auth/AuthContext'
 import type { Order } from '../types/order'
 
 const statusStyles: Record<string, string> = {
@@ -14,13 +15,23 @@ export function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const { user } = useAuth()
 
-  useEffect(() => {
-    getOrdersByCustomer(1)
-      .then(setOrders)
-      .catch(() => setErrorMessage('Unable to load your orders.'))
-      .finally(() => setIsLoading(false))
-  }, [])
+useEffect(() => {
+  if (!user?.id) {
+    setErrorMessage('Please login as a customer to view your orders.')
+    setIsLoading(false)
+    return
+  }
+
+  setIsLoading(true)
+  setErrorMessage('')
+
+  getOrdersByCustomer(user.id)
+    .then(setOrders)
+    .catch(() => setErrorMessage('Unable to load your orders.'))
+    .finally(() => setIsLoading(false))
+}, [user?.id])
 
   return (
     <section className="space-y-6">

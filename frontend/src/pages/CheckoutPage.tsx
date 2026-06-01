@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../features/cart/CartContext'
 import { createOrder } from '../api/orderApi'
+import { useAuth } from '../features/auth/AuthContext'
 
 export function CheckoutPage() {
   const { items, subtotal, restaurantId, restaurantName, clearCart } = useCart()
@@ -11,6 +12,7 @@ export function CheckoutPage() {
   const deliveryFee = items.length > 0 ? 2.5 : 0
   const tax = subtotal * 0.08
   const total = subtotal + deliveryFee + tax
+  const { user } = useAuth()
 
   if (items.length === 0) {
     return (
@@ -27,14 +29,18 @@ export function CheckoutPage() {
     if (!restaurantId || !restaurantName) {
     setErrorMessage('Cart does not contain restaurant information.')
     return
-  }
+    }
+    if (!user?.id) {
+  setErrorMessage('Please login as a customer before placing an order.')
+  return
+   }
 
   setIsSubmitting(true)
   setErrorMessage('')
 
   try {
     await createOrder({
-      userId: 1,
+      userId: user.id,
       restaurantId: Number(restaurantId),
       restaurantName,
       totalPrice: Number(total.toFixed(2)),

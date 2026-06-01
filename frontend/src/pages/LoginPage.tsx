@@ -14,7 +14,6 @@ const demoCredentials = [
     email: 'restaurant@foodapp.test',
     password: 'restaurant123',
   },
-  { label: 'Customer', email: 'customer@foodapp.test', password: 'customer123' },
 ]
 
 export function LoginPage() {
@@ -34,13 +33,13 @@ export function LoginPage() {
     }
   }, [navigate, user])
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
     setIsSubmitting(true)
 
     try {
-      const user = login({ email, password })
+      const user = await login({ email, password })
       navigate(from ?? getRedirectPath(user.role), { replace: true })
     } catch (loginError) {
       setError(

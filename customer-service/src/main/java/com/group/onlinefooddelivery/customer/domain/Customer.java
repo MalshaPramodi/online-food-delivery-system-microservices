@@ -3,6 +3,7 @@ package com.group.onlinefooddelivery.customer.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "customers")
@@ -25,16 +26,23 @@ public class Customer {
     @Column(nullable = false)
     private String phone;
 
+    @NotBlank
+    @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
     private boolean active = true;
 
     public Customer() {
     }
 
-    public Customer(Long id, String fullName, String email, String phone, String address, boolean active) {
+    public Customer(Long id, String fullName, String email, String phone, String password, String address,
+            boolean active) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
+        this.password = password;
         this.active = active;
     }
 
@@ -76,5 +84,13 @@ public class Customer {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

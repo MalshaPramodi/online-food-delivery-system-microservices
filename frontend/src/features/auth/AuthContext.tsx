@@ -1,9 +1,11 @@
 import type { PropsWithChildren } from 'react'
 import { createContext, useContext, useMemo, useState } from 'react'
+import { createCustomer, loginCustomer } from '../../api/customerApi'
 
 export type UserRole = 'admin' | 'customer' | 'restaurant'
 
 export type AuthUser = {
+  id?: number
   name: string
   email: string
   role: UserRole
@@ -26,8 +28,8 @@ type LoginInput = {
 
 type AuthContextValue = {
   user: AuthUser | null
-  login: (input: LoginInput) => AuthUser
-  signup: (input: SignupInput) => AuthUser
+  login: (input: LoginInput) => Promise<AuthUser>
+  signup: (input: SignupInput) => Promise<AuthUser>
   logout: () => void
 }
 
@@ -99,26 +101,43 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return input
   }
 
-  const login = (input: LoginInput) => {
+  const login = async (input: LoginInput) => {
     const email = normalizeEmail(input.email)
-    const accounts = [...demoAccounts, ...getStoredAccounts()]
-    const account = accounts.find(
-      (item) => normalizeEmail(item.email) === email && item.password === input.password,
-    )
 
-    if (!account) {
-      throw new Error('Invalid email or password.')
-    }
+const localAccount = [...demoAccounts, ...getStoredAccounts()].find(
+  (item) =>
+    normalizeEmail(item.email) === email &&
+    item.password === input.password &&
+    item.role !== 'customer',
+)
 
-    return saveUser({
-      name: account.name,
-      email: account.email,
-      role: account.role,
-      restaurantName: account.restaurantName,
-    })
+if (localAccount) {
+  return saveUser({
+    name: localAccount.name,
+    email: localAccount.email,
+    role: localAccount.role,
+    restaurantName: localAccount.restaurantName,
+  })
+}
+
+try {
+  const customer = await loginCustomer({
+    email,
+    password: input.password,
+  })
+
+  return saveUser({
+    id: customer.id,
+    name: customer.fullName,
+    email: customer.email,
+    role: 'customer',
+  })
+} catch {
+  throw new Error('Invalid email or password.')
+}
   }
 
-  const signup = (input: SignupInput) => {
+  const signup = async (input: SignupInput) => {
     const email = normalizeEmail(input.email)
     const storedAccounts = getStoredAccounts()
     const existingAccount = [...demoAccounts, ...storedAccounts].some(
@@ -128,6 +147,23 @@ export function AuthProvider({ children }: PropsWithChildren) {
     if (existingAccount) {
       throw new Error('An account with this email already exists.')
     }
+
+    if (input.role === 'customer') {
+      const customer = await createCustomer({
+        fullName: input.name.trim(),
+        email,
+        phone: '0000000000',
+        password: input.password,
+        active: true,
+    })
+
+    return saveUser({
+        id: customer.id,
+        name: customer.fullName,
+        email: customer.email,
+        role: 'customer',
+    })
+}
 
     const account: StoredAccount = {
       ...input,

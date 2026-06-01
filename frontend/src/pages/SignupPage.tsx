@@ -40,13 +40,13 @@ export function SignupPage() {
     }
   }, [navigate, user])
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
     setIsSubmitting(true)
 
     try {
-      const user = signup({ name, email, password, role })
+      const user = await signup({ name, email, password, role })
       navigate(getRedirectPath(user.role), { replace: true })
     } catch (signupError) {
       setError(
