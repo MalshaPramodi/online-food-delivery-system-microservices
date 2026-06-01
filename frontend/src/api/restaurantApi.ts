@@ -28,3 +28,37 @@ export async function createRestaurant(input: CreateRestaurantInput) {
   const response = await restaurantApi.post<Restaurant>('/restaurants', input)
   return response.data
 }
+
+export type CreateFoodMenuInput = {
+  foodName: string
+  foodDescription: string
+  foodCategory: string
+  foodPrice: number
+  available: boolean
+}
+
+export async function createFoodMenu(
+  restaurantId: string | number,
+  input: CreateFoodMenuInput,
+) {
+  const response = await restaurantApi.post<FoodMenu>(
+    `/restaurants/${restaurantId}/menus`,
+    input,
+  )
+  return response.data
+}
+
+export async function updateFoodMenu(
+  menuId: string | number,
+  input: CreateFoodMenuInput,
+) {
+  const response = await restaurantApi.put<FoodMenu>(
+    `/restaurants/menus/${menuId}`,
+    input,
+  )
+  return response.data
+}
+
+export async function deleteFoodMenu(menuId: string | number) {
+  await restaurantApi.delete(`/restaurants/menus/${menuId}`)
+}
