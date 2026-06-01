@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   Bike,
@@ -9,7 +10,11 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getOrdersByCustomer } from '../api/orderApi'
+import { getRestaurants } from '../api/restaurantApi'
 import { useAuth } from '../features/auth/AuthContext'
+import type { Order } from '../types/order'
+import type { Restaurant } from '../types/restaurant'
 
 const highlights = [
   {
@@ -35,30 +40,41 @@ const highlights = [
   },
 ]
 
-const foodShowcase = [
-  {
-    title: 'Flame Grill Burger',
-    subtitle: 'Urban Spice Kitchen',
-    image:
-      'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=1200',
-  },
-  {
-    title: 'Neapolitan Pizza',
-    subtitle: 'Napoli Byte Pizza',
-    image:
-      'https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=1200',
-  },
-  {
-    title: 'Fresh Healthy Bowl',
-    subtitle: 'Green Fork House',
-    image:
-      'https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=900&q=80',
-  },
+const restaurantImages = [
+  'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=900&q=80',
 ]
 
 export function LandingPage() {
   const { logout, user } = useAuth()
   const navigate = useNavigate()
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true)
+
+  useEffect(() => {
+    Promise.all([getRestaurants(), getOrdersByCustomer(1)])
+      .then(([restaurantData, orderData]) => {
+        setRestaurants(restaurantData)
+        setOrders(orderData)
+      })
+      .catch(() => {
+        setRestaurants([])
+        setOrders([])
+      })
+      .finally(() => setIsLoadingSummary(false))
+  }, [])
+
+  const activeOrders = useMemo(
+    () =>
+      orders.filter((order) =>
+        ['CREATED', 'PROCESSING', 'PAID'].includes(order.orderStatus),
+      ).length,
+    [orders],
+  )
+
+  const popularRestaurants = restaurants.slice(0, 3)
 
   const handleLogout = () => {
     logout()
@@ -111,7 +127,9 @@ export function LandingPage() {
         <section className="relative z-10 mt-10 grid items-center gap-10 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center rounded-full border border-[#476E00] bg-[#EEF7E6] px-3 py-1 text-xs font-medium text-[#476E00]">
-              Loved by 10,000+ hungry customers
+              {isLoadingSummary
+                ? 'Loading live platform data'
+                : `${restaurants.length} restaurants available now`}
             </p>
             <h1 className="mt-5 text-4xl font-bold leading-tight text-slate-900 sm:text-5xl">
               Delicious food,{' '}
@@ -127,11 +145,11 @@ export function LandingPage() {
             <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-700">
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[#FE5826]" />
-                30 min average delivery
+                {restaurants.length} restaurants online
               </span>
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[#476E00]" />
-                Live rider tracking
+                {activeOrders} active orders
               </span>
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[#040409]" />
@@ -207,24 +225,38 @@ export function LandingPage() {
 
         <section className="relative z-10 mt-12">
           <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-            Popular picks today
+            Restaurants available today
           </h3>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
-            {foodShowcase.map((food) => (
-              <article
-                key={food.title}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-              >
-                <img src={food.image} alt={food.title} className="h-44 w-full object-cover" />
-                <div className="p-4">
-                  <h4 className="text-base font-semibold text-slate-900">{food.title}</h4>
-                  <p className="mt-1 text-sm text-slate-700">{food.subtitle}</p>
-                  <span className="mt-3 inline-flex rounded-full bg-[#E8F3D6] px-2 py-1 text-xs font-semibold text-[#476E00]">
-                    Trending
-                  </span>
-                </div>
+            {popularRestaurants.length === 0 ? (
+              <article className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm md:col-span-3">
+                Restaurants will appear here once they are added.
               </article>
-            ))}
+            ) : (
+              popularRestaurants.map((restaurant, index) => (
+                <article
+                  key={restaurant.id}
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                >
+                  <img
+                    src={restaurantImages[index % restaurantImages.length]}
+                    alt={restaurant.name}
+                    className="h-44 w-full object-cover"
+                  />
+                  <div className="p-4">
+                    <h4 className="text-base font-semibold text-slate-900">
+                      {restaurant.name}
+                    </h4>
+                    <p className="mt-1 text-sm text-slate-700">
+                      {restaurant.cuisineType || restaurant.location}
+                    </p>
+                    <span className="mt-3 inline-flex rounded-full bg-[#E8F3D6] px-2 py-1 text-xs font-semibold text-[#476E00]">
+                      {restaurant.active ? 'Open now' : 'Unavailable'}
+                    </span>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
 
