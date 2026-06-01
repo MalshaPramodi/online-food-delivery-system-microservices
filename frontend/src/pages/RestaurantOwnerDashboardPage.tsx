@@ -1,95 +1,203 @@
-import { Clock3, Star, TrendingUp } from 'lucide-react'
-import { useAuth } from '../features/auth/AuthContext'
-import { ownerOrders, ownerStats, restaurantProfile } from '../mocks/restaurantOwnerData'
+import { useEffect, useMemo, useState } from 'react'
+import { getRestaurant, getRestaurantMenu } from '../api/restaurantApi'
+import { getOrdersByRestaurant } from '../api/orderApi'
+import type { FoodMenu, Restaurant } from '../types/restaurant'
+import type { Order } from '../types/order'
+
+const restaurantId = 1
 
 const statusStyles: Record<string, string> = {
-  New: 'bg-orange-100 text-orange-700',
-  Preparing: 'bg-amber-100 text-amber-700',
-  Ready: 'bg-emerald-100 text-emerald-700',
-  'Picked up': 'bg-slate-100 text-slate-700',
+  CREATED: 'bg-slate-100 text-slate-700',
+  PROCESSING: 'bg-amber-50 text-amber-700',
+  PAID: 'bg-emerald-50 text-emerald-700',
+  FINISHED: 'bg-blue-50 text-blue-700',
+  CANCELLED: 'bg-rose-50 text-rose-700',
 }
 
 export function RestaurantOwnerDashboardPage() {
-  const { user } = useAuth()
-  const restaurantName = user?.restaurantName ?? restaurantProfile.name
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
+  const [menuItems, setMenuItems] = useState<FoodMenu[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    Promise.all([
+      getRestaurant(restaurantId),
+      getRestaurantMenu(restaurantId),
+      getOrdersByRestaurant(restaurantId),
+    ])
+      .then(([restaurantData, menuData, orderData]) => {
+        setRestaurant(restaurantData)
+        setMenuItems(menuData)
+        setOrders(orderData)
+      })
+      .catch(() => setErrorMessage('Unable to load restaurant dashboard.'))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const stats = useMemo(() => {
+    const activeOrders = orders.filter((order) =>
+      ['CREATED', 'PROCESSING', 'PAID'].includes(order.orderStatus),
+    ).length
+
+    const completedOrders = orders.filter(
+      (order) => order.orderStatus === 'FINISHED',
+    ).length
+
+    const revenue = orders
+      .filter((order) => ['PAID', 'FINISHED'].includes(order.orderStatus))
+      .reduce((sum, order) => sum + Number(order.totalPrice), 0)
+
+    return {
+      activeOrders,
+      completedOrders,
+      menuItems: menuItems.length,
+      revenue,
+    }
+  }, [orders, menuItems])
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+        Loading restaurant dashboard...
+      </div>
+    )
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700 shadow-sm">
+        {errorMessage}
+      </div>
+    )
+  }
 
   return (
     <section className="space-y-6">
       <article className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="p-6 sm:p-8">
-            <span className="inline-flex rounded-full bg-[#E8F3D6] px-3 py-1 text-xs font-semibold text-[#476E00]">
-              Restaurant owner portal
-            </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              {restaurantName}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-              Manage incoming orders, update your menu, and keep restaurant details ready for customers.
+        <div className="grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#FE5826]">
+              Restaurant dashboard
             </p>
-            <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-700">
-              <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-2">
-                <Clock3 className="h-4 w-4 text-[#FE5826]" />
-                {restaurantProfile.prepTime} avg prep
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+              {restaurant?.name ?? 'Restaurant'}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Manage incoming orders, menu availability, and restaurant profile
+              data using live backend services.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-slate-600">
+              <span className="rounded-full bg-orange-50 px-3 py-1 text-[#FE5826]">
+                {restaurant?.cuisineType}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-2">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                {restaurantProfile.rating} rating
+              <span className="rounded-full bg-slate-100 px-3 py-1">
+                {restaurant?.location}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
-                {restaurantProfile.status}
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                {restaurant?.active ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>
-          <img
-            src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=80"
-            alt="Restaurant counter"
-            className="h-64 w-full object-cover lg:h-full"
-          />
+          <div className="rounded-2xl bg-orange-50 p-5">
+            <p className="text-sm font-medium text-slate-600">
+              Estimated paid revenue
+            </p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">
+              Rs. {stats.revenue.toFixed(2)}
+            </p>
+          </div>
         </div>
       </article>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {ownerStats.map((stat) => (
-          <article key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{stat.value}</p>
-            <p className="mt-2 text-xs font-semibold text-[#476E00]">{stat.note}</p>
-          </article>
-        ))}
+      <div className="grid gap-4 md:grid-cols-4">
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">Active orders</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats.activeOrders}
+          </p>
+        </article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">Completed</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats.completedOrders}
+          </p>
+        </article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">Menu items</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats.menuItems}
+          </p>
+        </article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">Status</p>
+          <p className="mt-2 text-xl font-bold text-slate-900">
+            {restaurant?.active ? 'Open' : 'Closed'}
+          </p>
+        </article>
       </div>
 
       <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Live orders</h2>
-            <p className="text-sm text-slate-500">Current restaurant-side queue preview.</p>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Recent orders
+            </h2>
+            <p className="text-sm text-slate-500">
+              Latest orders from Order Service.
+            </p>
           </div>
-          <span className="rounded-full bg-[#FE5826] px-3 py-1 text-xs font-semibold text-white">
-            {ownerOrders.length} active
-          </span>
         </div>
-        <div className="divide-y divide-slate-100">
-          {ownerOrders.slice(0, 3).map((order) => (
-            <div key={order.id} className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold text-slate-900">{order.id}</p>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${statusStyles[order.status]}`}>
-                    {order.status}
-                  </span>
+
+        {orders.length === 0 ? (
+          <div className="p-5 text-sm text-slate-500">
+            No orders found for this restaurant.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {orders.slice(0, 5).map((order) => (
+              <div
+                key={order.id}
+                className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center"
+              >
+                <div>
+                  <div className="flex items-center gap-3">
+                    <p className="font-semibold text-slate-900">
+                      Order #{order.id}
+                    </p>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        statusStyles[order.orderStatus] ??
+                        'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {order.orderStatus}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Customer #{order.userId}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {order.foodItems
+                      ?.map((item) => `${item.quantity}x ${item.foodName}`)
+                      .join(', ') || 'No items'}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">{order.customer}</p>
-                <p className="mt-1 text-sm text-slate-500">{order.items}</p>
+                <div className="text-sm md:text-right">
+                  <p className="font-semibold text-slate-900">
+                    Rs. {Number(order.totalPrice).toFixed(2)}
+                  </p>
+                  <p className="mt-1 text-slate-500">
+                    {order.orderTime
+                      ? new Date(order.orderTime).toLocaleString()
+                      : 'Time unavailable'}
+                  </p>
+                </div>
               </div>
-              <div className="text-sm md:text-right">
-                <p className="font-semibold text-slate-900">{order.total}</p>
-                <p className="mt-1 text-slate-500">{order.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </article>
     </section>
   )
