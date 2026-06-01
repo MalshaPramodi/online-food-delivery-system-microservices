@@ -62,3 +62,11 @@ export async function updateFoodMenu(
 export async function deleteFoodMenu(menuId: string | number) {
   await restaurantApi.delete(`/restaurants/menus/${menuId}`)
 }
+
+export async function updateRestaurant(
+  id: string | number,
+  input: CreateRestaurantInput,
+) {
+  const response = await restaurantApi.put<Restaurant>(`/restaurants/${id}`, input)
+  return response.data
+}

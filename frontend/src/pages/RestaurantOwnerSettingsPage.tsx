@@ -1,62 +1,138 @@
-import { restaurantProfile } from '../mocks/restaurantOwnerData'
+import { useEffect, useState } from 'react'
+import { getRestaurant, updateRestaurant } from '../api/restaurantApi'
+
+const restaurantId = 1
 
 export function RestaurantOwnerSettingsPage() {
+  const [form, setForm] = useState({
+    name: '',
+    location: '',
+    cuisineType: '',
+    active: true,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    getRestaurant(restaurantId)
+      .then((restaurant) => {
+        setForm({
+          name: restaurant.name,
+          location: restaurant.location,
+          cuisineType: restaurant.cuisineType,
+          active: restaurant.active,
+        })
+      })
+      .catch(() => setErrorMessage('Unable to load restaurant settings.'))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const updateField = (field: keyof typeof form, value: string | boolean) => {
+    setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsSaving(true)
+    setMessage('')
+    setErrorMessage('')
+
+    try {
+      await updateRestaurant(restaurantId, form)
+      setMessage('Restaurant settings updated successfully.')
+    } catch {
+      setErrorMessage('Unable to update restaurant settings.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+        Loading restaurant settings...
+      </div>
+    )
+  }
+
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Restaurant profile</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Preview of the restaurant-side profile settings screen.
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          Restaurant settings
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Update restaurant profile details stored in Restaurant Service.
         </p>
       </div>
 
-      <form className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+      >
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <span className="text-sm font-semibold text-slate-700">Restaurant name</span>
+          <label className="text-sm font-medium text-slate-700">
+            Restaurant name
             <input
-              defaultValue={restaurantProfile.name}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
+              required
+              value={form.name}
+              onChange={(event) => updateField('name', event.target.value)}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
             />
           </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold text-slate-700">Cuisine / catalog</span>
+
+          <label className="text-sm font-medium text-slate-700">
+            Cuisine type
             <input
-              defaultValue={restaurantProfile.catalog}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
+              required
+              value={form.cuisineType}
+              onChange={(event) =>
+                updateField('cuisineType', event.target.value)
+              }
+              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
             />
           </label>
-          <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-semibold text-slate-700">Location</span>
+
+          <label className="text-sm font-medium text-slate-700 md:col-span-2">
+            Location
             <input
-              defaultValue={restaurantProfile.location}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
+              required
+              value={form.location}
+              onChange={(event) => updateField('location', event.target.value)}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
             />
           </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold text-slate-700">Opening status</span>
-            <select
-              defaultValue={restaurantProfile.status}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
-            >
-              <option>Open</option>
-              <option>Paused</option>
-              <option>Closed</option>
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold text-slate-700">Average prep time</span>
+
+          <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700">
             <input
-              defaultValue={restaurantProfile.prepTime}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#FE5826] focus:ring-2"
+              type="checkbox"
+              checked={form.active}
+              onChange={(event) => updateField('active', event.target.checked)}
             />
+            Restaurant is active
           </label>
         </div>
+
+        {message && (
+          <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {message}
+          </p>
+        )}
+
+        {errorMessage && (
+          <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {errorMessage}
+          </p>
+        )}
+
         <button
-          type="button"
-          className="mt-5 rounded-lg bg-[#476E00] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+          type="submit"
+          disabled={isSaving}
+          className="mt-5 rounded-lg bg-[#FE5826] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E84F21] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Save preview
+          {isSaving ? 'Saving...' : 'Save settings'}
         </button>
       </form>
     </section>
