@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.web.bind.annotation.PutMapping;
+import com.group.onlinefooddelivery.order.dto.OrderStatusUpdateRequest;
 import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.OrderStatus;
 import com.group.onlinefooddelivery.order.domain.Payment;
@@ -59,6 +60,13 @@ public class OrderRestController {
     @GetMapping("/{orderId}")
     public Order getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderByOrderId(orderId);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public Order updateOrderStatus(
+            @PathVariable Long orderId,
+            @Valid @RequestBody OrderStatusUpdateRequest request) {
+        return orderService.updateOrderStatus(orderId, request.getStatus());
     }
 
     @GetMapping("/user/{userId}")

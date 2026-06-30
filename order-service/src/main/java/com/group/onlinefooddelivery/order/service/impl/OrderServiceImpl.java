@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
+import com.group.onlinefooddelivery.order.domain.OrderStatus;
 import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.Payment;
 import com.group.onlinefooddelivery.order.repository.OrderRepository;
@@ -86,5 +86,17 @@ public class OrderServiceImpl implements OrderService {
         payment.setTotalPrice(order.getTotalPrice());
 
         return restTemplate.postForObject(paymentServiceUrl, payment, Payment.class);
+    }
+
+    @Override
+    public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = getOrderByOrderId(orderId);
+
+        if (order == null) {
+            throw new RuntimeException("Order not found: " + orderId);
+        }
+
+        order.setOrderStatus(status);
+        return orderRepository.save(order);
     }
 }

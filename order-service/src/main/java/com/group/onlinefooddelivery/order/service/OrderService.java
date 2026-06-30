@@ -1,7 +1,7 @@
 package com.group.onlinefooddelivery.order.service;
 
 import java.util.List;
-
+import com.group.onlinefooddelivery.order.domain.OrderStatus;
 import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.Payment;
 
@@ -12,6 +12,8 @@ public interface OrderService {
     List<Order> findAll();
 
     Order getOrderByOrderId(Long id);
+
+    Order updateOrderStatus(Long orderId, OrderStatus status);
 
     List<Order> getOrdersByUserId(Long userId);
 

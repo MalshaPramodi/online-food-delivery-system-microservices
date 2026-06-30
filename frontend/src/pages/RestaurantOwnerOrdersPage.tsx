@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getOrdersByRestaurant } from '../api/orderApi'
+import { getOrdersByRestaurant, updateOrderStatus } from '../api/orderApi'
 import type { Order } from '../types/order'
 
 const statusStyles: Record<string, string> = {
   CREATED: 'bg-slate-100 text-slate-700',
   PROCESSING: 'bg-amber-50 text-amber-700',
+  READY: 'bg-indigo-50 text-indigo-700',
   PAID: 'bg-emerald-50 text-emerald-700',
   FINISHED: 'bg-blue-50 text-blue-700',
   CANCELLED: 'bg-rose-50 text-rose-700',
@@ -14,12 +15,23 @@ const actionLabels: Record<string, string> = {
   CREATED: 'Accept order',
   PROCESSING: 'Mark ready',
   PAID: 'Start preparing',
+  READY: 'Complete order',
   FINISHED: 'Completed',
   CANCELLED: 'Cancelled',
 }
 
+function getNextOrderStatus(status: string) {
+  if (status === 'CREATED') return 'PROCESSING'
+  if (status === 'PAID') return 'PROCESSING'
+  if (status === 'PROCESSING') return 'READY'
+  if (status === 'READY') return 'FINISHED'
+
+  return null
+}
+
 export function RestaurantOwnerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
+  const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -32,7 +44,7 @@ export function RestaurantOwnerOrdersPage() {
 
   const stats = useMemo(() => {
     const activeOrders = orders.filter((order) =>
-      ['CREATED', 'PROCESSING', 'PAID'].includes(order.orderStatus),
+      ['CREATED', 'PAID', 'PROCESSING', 'READY'].includes(order.orderStatus),
     ).length
 
     const preparingOrders = orders.filter((order) =>
@@ -45,6 +57,31 @@ export function RestaurantOwnerOrdersPage() {
 
     return { activeOrders, preparingOrders, completedOrders }
   }, [orders])
+
+  const handleUpdateOrderStatus = async (order: Order) => {
+    const nextStatus = getNextOrderStatus(order.orderStatus)
+
+    if (!nextStatus) {
+      return
+    }
+
+    setUpdatingOrderId(order.id)
+    setErrorMessage('')
+
+    try {
+      const updatedOrder = await updateOrderStatus(order.id, nextStatus)
+
+      setOrders((currentOrders) =>
+        currentOrders.map((currentOrder) =>
+          currentOrder.id === updatedOrder.id ? updatedOrder : currentOrder,
+        ),
+      )
+    } catch {
+      setErrorMessage('Unable to update order status.')
+    } finally {
+      setUpdatingOrderId(null)
+    }
+  }
 
   return (
     <section className="space-y-6">
@@ -142,10 +179,15 @@ export function RestaurantOwnerOrdersPage() {
             <div className="mt-4 flex justify-end border-t border-slate-100 pt-4">
               <button
                 type="button"
-                disabled={['FINISHED', 'CANCELLED'].includes(order.orderStatus)}
+                onClick={() => handleUpdateOrderStatus(order)}
+                disabled={
+                  !getNextOrderStatus(order.orderStatus) || updatingOrderId === order.id
+                }
                 className="rounded-lg bg-[#FE5826] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E84F21] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
               >
-                {actionLabels[order.orderStatus] ?? 'Update order'}
+                {updatingOrderId === order.id
+                  ? 'Updating...'
+                  : actionLabels[order.orderStatus] ?? 'Update order'}
               </button>
             </div>
           </article>
