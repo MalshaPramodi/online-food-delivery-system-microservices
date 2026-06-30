@@ -1,6 +1,8 @@
 package com.group.onlinefooddelivery.restaurant.controller;
 
 import com.group.onlinefooddelivery.restaurant.domain.Restaurant;
+import com.group.onlinefooddelivery.restaurant.dto.RestaurantAuthResponse;
+import com.group.onlinefooddelivery.restaurant.dto.RestaurantLoginRequest;
 import com.group.onlinefooddelivery.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,11 @@ public class RestaurantRestController {
     @ResponseStatus(HttpStatus.CREATED)
     public Restaurant createRestaurant(@Valid @RequestBody Restaurant restaurant) {
         return restaurantService.createRestaurant(restaurant);
+    }
+
+    @PostMapping("/login")
+    public RestaurantAuthResponse login(@Valid @RequestBody RestaurantLoginRequest request) {
+        return restaurantService.login(request);
     }
 
     @GetMapping

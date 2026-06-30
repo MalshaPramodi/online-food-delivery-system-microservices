@@ -130,7 +130,7 @@ export function RestaurantDetailsPage() {
                 </div>
                 <p className="text-sm text-slate-600">{item.foodDescription}</p>
                 <p className="text-sm font-semibold text-slate-900">
-                  ${Number(item.foodPrice).toFixed(2)}
+                  Rs. {Number(item.foodPrice).toFixed(2)}
                 </p>
               </div>
               <button

@@ -29,6 +29,27 @@ export async function createRestaurant(input: CreateRestaurantInput) {
   return response.data
 }
 
+export type RestaurantLoginInput = {
+  email: string
+  password: string
+}
+
+export type RestaurantAuthResponse = {
+  id: number
+  name: string
+  email: string
+  location: string
+  cuisineType: string
+}
+
+export async function loginRestaurant(input: RestaurantLoginInput) {
+  const response = await restaurantApi.post<RestaurantAuthResponse>(
+    '/restaurants/login',
+    input,
+  )
+  return response.data
+}
+
 export type CreateFoodMenuInput = {
   foodName: string
   foodDescription: string

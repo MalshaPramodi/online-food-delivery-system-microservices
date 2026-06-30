@@ -42,7 +42,9 @@ export function CartPage() {
           >
             <div>
               <h2 className="font-semibold text-slate-900">{item.name}</h2>
-              <p className="mt-1 text-sm text-slate-500">${item.unitPrice.toFixed(2)}</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Rs. {item.unitPrice.toFixed(2)}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -77,19 +79,19 @@ export function CartPage() {
         <div className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between text-slate-600">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>Rs. {subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
             <span>Delivery</span>
-            <span>${deliveryFee.toFixed(2)}</span>
+            <span>Rs. {deliveryFee.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
             <span>Tax</span>
-            <span>${tax.toFixed(2)}</span>
+            <span>Rs. {tax.toFixed(2)}</span>
           </div>
           <div className="mt-3 flex justify-between border-t border-slate-100 pt-3 text-base font-semibold text-slate-900">
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>Rs. {total.toFixed(2)}</span>
           </div>
         </div>
         <Link

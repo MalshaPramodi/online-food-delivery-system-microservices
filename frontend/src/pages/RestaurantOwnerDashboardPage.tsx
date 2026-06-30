@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getRestaurant, getRestaurantMenu } from '../api/restaurantApi'
 import { getOrdersByRestaurant } from '../api/orderApi'
+import { useAuth } from '../features/auth/AuthContext'
 import type { FoodMenu, Restaurant } from '../types/restaurant'
 import type { Order } from '../types/order'
-
-const restaurantId = 1
 
 const statusStyles: Record<string, string> = {
   CREATED: 'bg-slate-100 text-slate-700',
@@ -15,6 +14,7 @@ const statusStyles: Record<string, string> = {
 }
 
 export function RestaurantOwnerDashboardPage() {
+  const { user } = useAuth()
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [menuItems, setMenuItems] = useState<FoodMenu[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -22,10 +22,19 @@ export function RestaurantOwnerDashboardPage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    if (!user?.restaurantId) {
+      setErrorMessage('Please login as a restaurant owner to view the dashboard.')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage('')
+
     Promise.all([
-      getRestaurant(restaurantId),
-      getRestaurantMenu(restaurantId),
-      getOrdersByRestaurant(restaurantId),
+      getRestaurant(user.restaurantId),
+      getRestaurantMenu(user.restaurantId),
+      getOrdersByRestaurant(user.restaurantId),
     ])
       .then(([restaurantData, menuData, orderData]) => {
         setRestaurant(restaurantData)
@@ -34,11 +43,11 @@ export function RestaurantOwnerDashboardPage() {
       })
       .catch(() => setErrorMessage('Unable to load restaurant dashboard.'))
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [user?.restaurantId])
 
   const stats = useMemo(() => {
     const activeOrders = orders.filter((order) =>
-      ['CREATED', 'PROCESSING', 'PAID'].includes(order.orderStatus),
+      ['CREATED', 'PAID', 'PROCESSING', 'READY'].includes(order.orderStatus),
     ).length
 
     const completedOrders = orders.filter(

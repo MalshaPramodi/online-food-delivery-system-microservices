@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react'
 import { createContext, useContext, useMemo, useState } from 'react'
 import { createCustomer, loginCustomer } from '../../api/customerApi'
+import { createRestaurant, loginRestaurant } from '../../api/restaurantApi'
 
 export type UserRole = 'admin' | 'customer' | 'restaurant'
 
@@ -10,6 +11,7 @@ export type AuthUser = {
   email: string
   role: UserRole
   restaurantName?: string
+  restaurantId?: number
 }
 
 type StoredAccount = AuthUser & {
@@ -34,7 +36,6 @@ type AuthContextValue = {
 }
 
 const USER_STORAGE_KEY = 'food-delivery-auth-user'
-const ACCOUNTS_STORAGE_KEY = 'food-delivery-auth-accounts'
 
 const demoAccounts: StoredAccount[] = [
   {
@@ -42,19 +43,6 @@ const demoAccounts: StoredAccount[] = [
     email: 'admin@foodapp.test',
     password: 'admin123',
     role: 'admin',
-  },
-  {
-    name: 'Restaurant Owner',
-    email: 'restaurant@foodapp.test',
-    password: 'restaurant123',
-    role: 'restaurant',
-    restaurantName: 'Urban Spice Kitchen',
-  },
-  {
-    name: 'Customer User',
-    email: 'customer@foodapp.test',
-    password: 'customer123',
-    role: 'customer',
   },
 ]
 
@@ -75,17 +63,6 @@ function getStoredUser() {
   )
 }
 
-function getStoredAccounts() {
-  return parseJson<StoredAccount[]>(
-    window.localStorage.getItem(ACCOUNTS_STORAGE_KEY),
-    [],
-  )
-}
-
-function saveStoredAccounts(accounts: StoredAccount[]) {
-  window.localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts))
-}
-
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
 }
@@ -104,43 +81,54 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const login = async (input: LoginInput) => {
     const email = normalizeEmail(input.email)
 
-const localAccount = [...demoAccounts, ...getStoredAccounts()].find(
-  (item) =>
-    normalizeEmail(item.email) === email &&
-    item.password === input.password &&
-    item.role !== 'customer',
-)
+    const localAccount = demoAccounts.find(
+      (item) => normalizeEmail(item.email) === email && item.password === input.password,
+    )
 
-if (localAccount) {
-  return saveUser({
-    name: localAccount.name,
-    email: localAccount.email,
-    role: localAccount.role,
-    restaurantName: localAccount.restaurantName,
-  })
-}
+    if (localAccount) {
+      return saveUser({
+        name: localAccount.name,
+        email: localAccount.email,
+        role: localAccount.role,
+      })
+    }
 
-try {
-  const customer = await loginCustomer({
-    email,
-    password: input.password,
-  })
+    try {
+      const customer = await loginCustomer({
+        email,
+        password: input.password,
+      })
 
-  return saveUser({
-    id: customer.id,
-    name: customer.fullName,
-    email: customer.email,
-    role: 'customer',
-  })
-} catch {
-  throw new Error('Invalid email or password.')
-}
+      return saveUser({
+        id: customer.id,
+        name: customer.fullName,
+        email: customer.email,
+        role: 'customer',
+      })
+    } catch {
+      try {
+        const restaurant = await loginRestaurant({
+          email,
+          password: input.password,
+        })
+
+        return saveUser({
+          id: restaurant.id,
+          name: restaurant.name,
+          email: restaurant.email,
+          role: 'restaurant',
+          restaurantName: restaurant.name,
+          restaurantId: restaurant.id,
+        })
+      } catch {
+        throw new Error('Invalid email or password.')
+      }
+    }
   }
 
   const signup = async (input: SignupInput) => {
     const email = normalizeEmail(input.email)
-    const storedAccounts = getStoredAccounts()
-    const existingAccount = [...demoAccounts, ...storedAccounts].some(
+    const existingAccount = demoAccounts.some(
       (account) => normalizeEmail(account.email) === email,
     )
 
@@ -155,30 +143,32 @@ try {
         phone: '0000000000',
         password: input.password,
         active: true,
-    })
+      })
 
-    return saveUser({
+      return saveUser({
         id: customer.id,
         name: customer.fullName,
         email: customer.email,
         role: 'customer',
-    })
-}
-
-    const account: StoredAccount = {
-      ...input,
-      email,
-      name: input.name.trim(),
-      restaurantName: input.role === 'restaurant' ? input.name.trim() : undefined,
+      })
     }
 
-    saveStoredAccounts([...storedAccounts, account])
+    const restaurant = await createRestaurant({
+      name: input.name.trim(),
+      email,
+      password: input.password,
+      location: 'Not provided',
+      cuisineType: 'General',
+      active: true,
+    })
 
     return saveUser({
-      name: account.name,
-      email: account.email,
-      role: account.role,
-      restaurantName: account.restaurantName,
+      id: restaurant.id,
+      name: restaurant.name,
+      email,
+      role: 'restaurant',
+      restaurantName: restaurant.name,
+      restaurantId: restaurant.id,
     })
   }
 

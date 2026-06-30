@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { getRestaurant, updateRestaurant } from '../api/restaurantApi'
-
-const restaurantId = 1
+import { useAuth } from '../features/auth/AuthContext'
 
 export function RestaurantOwnerSettingsPage() {
+  const { user } = useAuth()
   const [form, setForm] = useState({
     name: '',
     location: '',
@@ -16,7 +16,16 @@ export function RestaurantOwnerSettingsPage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    getRestaurant(restaurantId)
+    if (!user?.restaurantId) {
+      setErrorMessage('Please login as a restaurant owner to edit settings.')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage('')
+
+    getRestaurant(user.restaurantId)
       .then((restaurant) => {
         setForm({
           name: restaurant.name,
@@ -27,7 +36,7 @@ export function RestaurantOwnerSettingsPage() {
       })
       .catch(() => setErrorMessage('Unable to load restaurant settings.'))
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [user?.restaurantId])
 
   const updateField = (field: keyof typeof form, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }))
@@ -40,7 +49,11 @@ export function RestaurantOwnerSettingsPage() {
     setErrorMessage('')
 
     try {
-      await updateRestaurant(restaurantId, form)
+      if (!user?.restaurantId) {
+        throw new Error('Missing restaurant id')
+      }
+
+      await updateRestaurant(user.restaurantId, form)
       setMessage('Restaurant settings updated successfully.')
     } catch {
       setErrorMessage('Unable to update restaurant settings.')

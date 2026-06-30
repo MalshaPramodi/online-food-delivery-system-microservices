@@ -31,13 +31,18 @@ export function RestaurantOwnerShell() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
 
   useEffect(() => {
-    getRestaurant(1)
+    if (!user?.restaurantId) {
+      setRestaurant(null)
+      return
+    }
+
+    getRestaurant(user.restaurantId)
       .then(setRestaurant)
       .catch(() => setRestaurant(null))
-  }, [])
+  }, [user?.restaurantId])
 
- const restaurantName =
-  restaurant?.name ?? user?.restaurantName ?? 'Restaurant'
+  const restaurantName =
+    restaurant?.name ?? user?.restaurantName ?? 'Restaurant'
 
   const handleLogout = () => {
     logout()

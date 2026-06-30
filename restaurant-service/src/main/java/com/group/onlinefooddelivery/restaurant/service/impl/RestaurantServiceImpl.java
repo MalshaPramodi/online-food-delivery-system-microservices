@@ -2,7 +2,10 @@ package com.group.onlinefooddelivery.restaurant.service.impl;
 
 import com.group.onlinefooddelivery.restaurant.dao.RestaurantRepository;
 import com.group.onlinefooddelivery.restaurant.domain.Restaurant;
+import com.group.onlinefooddelivery.restaurant.dto.RestaurantAuthResponse;
+import com.group.onlinefooddelivery.restaurant.dto.RestaurantLoginRequest;
 import com.group.onlinefooddelivery.restaurant.service.RestaurantService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.group.onlinefooddelivery.restaurant.exception.RestaurantNotFoundException;
 
@@ -12,6 +15,7 @@ import java.util.List;
 public class RestaurantServiceImpl implements RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public RestaurantServiceImpl(RestaurantRepository restaurantRepository) {
         this.restaurantRepository = restaurantRepository;
@@ -19,7 +23,29 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Restaurant createRestaurant(Restaurant restaurant) {
+        if (restaurant.getPassword() != null && !restaurant.getPassword().isBlank()) {
+            restaurant.setPassword(passwordEncoder.encode(restaurant.getPassword()));
+        }
+
         return restaurantRepository.save(restaurant);
+    }
+
+    @Override
+    public RestaurantAuthResponse login(RestaurantLoginRequest request) {
+        Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (restaurant.getPassword() == null
+                || !passwordEncoder.matches(request.getPassword(), restaurant.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return new RestaurantAuthResponse(
+                restaurant.getId(),
+                restaurant.getName(),
+                restaurant.getEmail(),
+                restaurant.getLocation(),
+                restaurant.getCuisineType());
     }
 
     @Override

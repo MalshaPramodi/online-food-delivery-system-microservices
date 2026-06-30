@@ -8,14 +8,6 @@ type LocationState = {
   from?: string
 }
 
-const demoCredentials = [
-  {
-    label: 'Restaurant',
-    email: 'restaurant@foodapp.test',
-    password: 'restaurant123',
-  },
-]
-
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -69,24 +61,6 @@ export function LoginPage() {
             Sign in to manage your orders, update your restaurant, or keep the
             delivery experience running smoothly.
           </p>
-          <div className="mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
-            {demoCredentials.map((credential) => (
-              <button
-                key={credential.email}
-                type="button"
-                onClick={() => {
-                  setEmail(credential.email)
-                  setPassword(credential.password)
-                }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-3 text-left text-sm font-semibold shadow-sm transition hover:border-[#FE5826]"
-              >
-                {credential.label}
-                <span className="mt-1 block text-xs font-normal text-slate-500">
-                  Fill demo login
-                </span>
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

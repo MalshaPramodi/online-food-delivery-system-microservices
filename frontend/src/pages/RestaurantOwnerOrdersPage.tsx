@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getOrdersByRestaurant, updateOrderStatus } from '../api/orderApi'
+import { useAuth } from '../features/auth/AuthContext'
 import type { Order } from '../types/order'
 
 const statusStyles: Record<string, string> = {
@@ -30,17 +31,27 @@ function getNextOrderStatus(status: string) {
 }
 
 export function RestaurantOwnerOrdersPage() {
+  const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    getOrdersByRestaurant(1)
+    if (!user?.restaurantId) {
+      setErrorMessage('Please login as a restaurant owner to view orders.')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage('')
+
+    getOrdersByRestaurant(user.restaurantId)
       .then(setOrders)
       .catch(() => setErrorMessage('Unable to load restaurant orders.'))
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [user?.restaurantId])
 
   const stats = useMemo(() => {
     const activeOrders = orders.filter((order) =>

@@ -7,7 +7,7 @@ export const restaurants: RestaurantDetails[] = [
     catalog: 'Sri Lankan & Fusion',
     rating: 4.7,
     deliveryTime: '20-30 min',
-    deliveryFee: '$1.99',
+    deliveryFee: 'Rs. 1.99',
     heroImage:
       'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80',
     shortDescription: 'Flavor-packed bowls, kottu, and signature grilled specials.',
@@ -44,7 +44,7 @@ export const restaurants: RestaurantDetails[] = [
     catalog: 'Pizza & Italian',
     rating: 4.5,
     deliveryTime: '25-35 min',
-    deliveryFee: '$2.49',
+    deliveryFee: 'Rs. 2.49',
     heroImage:
       'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80',
     shortDescription: 'Stone-baked pizzas, garlic breads, and creamy pastas.',
@@ -79,7 +79,7 @@ export const restaurants: RestaurantDetails[] = [
     catalog: 'Healthy & Salads',
     rating: 4.8,
     deliveryTime: '15-25 min',
-    deliveryFee: '$0.99',
+    deliveryFee: 'Rs. 0.99',
     heroImage:
       'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80',
     shortDescription: 'Protein bowls, detox smoothies, and clean comfort food.',

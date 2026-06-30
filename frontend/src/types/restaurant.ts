@@ -11,6 +11,7 @@ export type Restaurant = {
   id: number
   name: string
   location: string
+  email?: string
   cuisineType: string
   active: boolean
 }
@@ -27,6 +28,8 @@ export type FoodMenu = {
 export type CreateRestaurantInput = {
   name: string
   location: string
+  email?: string
+  password?: string
   cuisineType: string
   active: boolean
 }

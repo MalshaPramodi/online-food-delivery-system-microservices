@@ -27,39 +27,40 @@ export function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!restaurantId || !restaurantName) {
-    setErrorMessage('Cart does not contain restaurant information.')
-    return
+      setErrorMessage('Cart does not contain restaurant information.')
+      return
     }
+
     if (!user?.id) {
-  setErrorMessage('Please login as a customer before placing an order.')
-  return
-   }
+      setErrorMessage('Please login as a customer before placing an order.')
+      return
+    }
 
-  setIsSubmitting(true)
-  setErrorMessage('')
+    setIsSubmitting(true)
+    setErrorMessage('')
 
-  try {
-    await createOrder({
-      userId: user.id,
-      restaurantId: Number(restaurantId),
-      restaurantName,
-      totalPrice: Number(total.toFixed(2)),
-      foodItems: items.map((item) => ({
-        foodMenuId: Number(item.menuItemId),
-        foodName: item.name,
-        foodPrice: Number(item.unitPrice),
-        quantity: item.quantity,
-      })),
-    })
+    try {
+      await createOrder({
+        userId: user.id,
+        restaurantId: Number(restaurantId),
+        restaurantName,
+        totalPrice: Number(total.toFixed(2)),
+        foodItems: items.map((item) => ({
+          foodMenuId: Number(item.menuItemId),
+          foodName: item.name,
+          foodPrice: Number(item.unitPrice),
+          quantity: item.quantity,
+        })),
+      })
 
-    clearCart()
-    navigate('/my-orders')
-  } catch {
-    setErrorMessage('Unable to place order. Please try again.')
-  } finally {
-    setIsSubmitting(false)
+      clearCart()
+      navigate('/my-orders')
+    } catch {
+      setErrorMessage('Unable to place order. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
 
   return (
     <section className="grid gap-6 lg:grid-cols-3">
@@ -111,25 +112,25 @@ export function CheckoutPage() {
         <div className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between text-slate-600">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>Rs. {subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
             <span>Delivery</span>
-            <span>${deliveryFee.toFixed(2)}</span>
+            <span>Rs. {deliveryFee.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
             <span>Tax</span>
-            <span>${tax.toFixed(2)}</span>
+            <span>Rs. {tax.toFixed(2)}</span>
           </div>
           <div className="mt-3 flex justify-between border-t border-slate-100 pt-3 text-base font-semibold text-slate-900">
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>Rs. {total.toFixed(2)}</span>
           </div>
         </div>
         {errorMessage && (
-            <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {errorMessage}
-            </p>
+          <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {errorMessage}
+          </p>
         )}
         <button
           type="button"

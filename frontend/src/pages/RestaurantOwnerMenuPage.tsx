@@ -5,6 +5,7 @@ import {
   getRestaurantMenu,
   updateFoodMenu,
 } from '../api/restaurantApi'
+import { useAuth } from '../features/auth/AuthContext'
 import type { FoodMenu } from '../types/restaurant'
 
 type MenuForm = {
@@ -24,7 +25,7 @@ const emptyForm: MenuForm = {
 }
 
 export function RestaurantOwnerMenuPage() {
-  const restaurantId = 1
+  const { user } = useAuth()
   const [menuItems, setMenuItems] = useState<FoodMenu[]>([])
   const [form, setForm] = useState<MenuForm>(emptyForm)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -33,8 +34,15 @@ export function RestaurantOwnerMenuPage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   const loadMenu = () => {
+    if (!user?.restaurantId) {
+      setErrorMessage('Please login as a restaurant owner to manage menu items.')
+      setIsLoading(false)
+      return
+    }
+
     setIsLoading(true)
-    getRestaurantMenu(restaurantId)
+    setErrorMessage('')
+    getRestaurantMenu(user.restaurantId)
       .then(setMenuItems)
       .catch(() => setErrorMessage('Unable to load menu items.'))
       .finally(() => setIsLoading(false))
@@ -42,7 +50,7 @@ export function RestaurantOwnerMenuPage() {
 
   useEffect(() => {
     loadMenu()
-  }, [])
+  }, [user?.restaurantId])
 
   const updateField = (field: keyof MenuForm, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }))
@@ -80,8 +88,8 @@ export function RestaurantOwnerMenuPage() {
     try {
       if (editingId) {
         await updateFoodMenu(editingId, payload)
-      } else {
-        await createFoodMenu(restaurantId, payload)
+      } else if (user?.restaurantId) {
+        await createFoodMenu(user.restaurantId, payload)
       }
 
       resetForm()
