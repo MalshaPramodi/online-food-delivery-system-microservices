@@ -22,6 +22,4 @@ public interface OrderService {
     Payment getPaymentResponse(Order order);
 
     void sendOrderCreatedNotification(Order order);
-
-    void sendPaymentCompletedNotification(Order order);
 }

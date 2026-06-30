@@ -58,8 +58,8 @@ export function RestaurantOwnerOrdersPage() {
       ['CREATED', 'PAID', 'PROCESSING', 'READY'].includes(order.orderStatus),
     ).length
 
-    const preparingOrders = orders.filter((order) =>
-      ['PROCESSING', 'PAID'].includes(order.orderStatus),
+    const preparingOrders = orders.filter(
+      (order) => order.orderStatus === 'PROCESSING',
     ).length
 
     const completedOrders = orders.filter(

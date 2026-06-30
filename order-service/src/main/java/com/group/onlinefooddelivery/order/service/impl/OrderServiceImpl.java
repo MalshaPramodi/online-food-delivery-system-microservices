@@ -9,48 +9,29 @@ import com.group.onlinefooddelivery.order.domain.OrderStatus;
 import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.Payment;
 import com.group.onlinefooddelivery.order.repository.OrderRepository;
+import com.group.onlinefooddelivery.order.service.NotificationEventPublisher;
 import com.group.onlinefooddelivery.order.service.OrderService;
-import com.group.onlinefooddelivery.order.domain.Notification;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final RestTemplate restTemplate;
+    private final NotificationEventPublisher notificationEventPublisher;
 
     @Value("${payment.microservice.url}")
     private String paymentServiceUrl;
 
-    @Value("${notification.microservice.url}")
-    private String notificationServiceUrl;
-
     @Override
     public void sendOrderCreatedNotification(Order order) {
-        Notification notification = new Notification();
-        notification.setCustomerId(order.getUserId());
-        notification.setOrderId(order.getId());
-        notification.setType("ORDER_CREATED");
-        notification.setChannel("EMAIL");
-        notification.setMessage("Your order has been placed successfully.");
-
-        restTemplate.postForObject(notificationServiceUrl, notification, Notification.class);
+        notificationEventPublisher.publishOrderCreated(order);
     }
 
-    @Override
-    public void sendPaymentCompletedNotification(Order order) {
-        Notification notification = new Notification();
-        notification.setCustomerId(order.getUserId());
-        notification.setOrderId(order.getId());
-        notification.setType("PAYMENT_COMPLETED");
-        notification.setChannel("EMAIL");
-        notification.setMessage("Your payment has been completed successfully.");
-
-        restTemplate.postForObject(notificationServiceUrl, notification, Notification.class);
-    }
-
-    public OrderServiceImpl(OrderRepository orderRepository, RestTemplate restTemplate) {
+    public OrderServiceImpl(OrderRepository orderRepository, RestTemplate restTemplate,
+            NotificationEventPublisher notificationEventPublisher) {
         this.orderRepository = orderRepository;
         this.restTemplate = restTemplate;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     @Override

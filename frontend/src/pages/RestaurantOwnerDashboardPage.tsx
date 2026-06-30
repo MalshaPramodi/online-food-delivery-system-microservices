@@ -9,6 +9,7 @@ const statusStyles: Record<string, string> = {
   CREATED: 'bg-slate-100 text-slate-700',
   PROCESSING: 'bg-amber-50 text-amber-700',
   PAID: 'bg-emerald-50 text-emerald-700',
+  READY: 'bg-indigo-50 text-indigo-700',
   FINISHED: 'bg-blue-50 text-blue-700',
   CANCELLED: 'bg-rose-50 text-rose-700',
 }

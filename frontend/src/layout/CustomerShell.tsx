@@ -1,4 +1,4 @@
-import { LogOut, ShoppingBag, UtensilsCrossed } from 'lucide-react'
+import { Bell, LogOut, ShoppingBag, UtensilsCrossed } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
 import { useCart } from '../features/cart/CartContext'
@@ -48,6 +48,19 @@ export function CustomerShell() {
               }
             >
               My Orders
+            </NavLink>
+            <NavLink
+              to="/notifications"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+                  isActive
+                    ? 'bg-brand-100 text-brand-700'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`
+              }
+            >
+              <Bell className="h-4 w-4" />
+              Notifications
             </NavLink>
             <NavLink
               to="/cart"

@@ -37,6 +37,9 @@ public class OrderRestController {
 
     @PostMapping("/create")
     public String placeOrder(@Valid @RequestBody Order order) {
+        order.setId(null);
+        order.setOrderStatus(OrderStatus.CREATED);
+
         Order savedOrder = orderService.saveOrder(order);
 
         orderService.sendOrderCreatedNotification(savedOrder);
@@ -46,7 +49,6 @@ public class OrderRestController {
         if (paymentResponse != null && paymentResponse.getOrderStatus() == OrderStatus.PAID) {
             savedOrder.setOrderStatus(OrderStatus.PAID);
             orderService.saveOrder(savedOrder);
-            orderService.sendPaymentCompletedNotification(savedOrder);
         }
 
         return "Order has been placed successfully";

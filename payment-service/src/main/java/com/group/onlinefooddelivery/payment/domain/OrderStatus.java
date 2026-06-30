@@ -3,8 +3,9 @@ package com.group.onlinefooddelivery.payment.domain;
 public enum OrderStatus {
 
     CREATED,
-    PROCESSING,
     PAID,
+    PROCESSING,
+    READY,
     FINISHED,
     CANCELLED
 }

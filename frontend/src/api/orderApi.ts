@@ -40,8 +40,13 @@ export type CreateOrderInput = {
   }[]
 }
 
-export type OrderStatus = 'CREATED' | 'PAID' | 'PROCESSING'
-  | 'READY'| 'CANCELLED' | 'FINISHED'
+export type OrderStatus =
+  | 'CREATED'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'READY'
+  | 'CANCELLED'
+  | 'FINISHED'
 
 export async function createOrder(input: CreateOrderInput) {
   const response = await orderApi.post<string>('/order/create', input)

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.group.onlinefooddelivery.payment.domain.CreditCard;
 import com.group.onlinefooddelivery.payment.domain.OrderStatus;
 import com.group.onlinefooddelivery.payment.domain.Payment;
+import com.group.onlinefooddelivery.payment.service.PaymentNotificationEventPublisher;
 import com.group.onlinefooddelivery.payment.service.PaymentService;
 
 @RestController
@@ -27,12 +28,15 @@ public class PaymentRestController {
     private static final Logger log = LoggerFactory.getLogger(PaymentRestController.class);
 
     private final PaymentService paymentService;
+    private final PaymentNotificationEventPublisher notificationEventPublisher;
 
     @Value("${payment.credit-card-validation.enabled:false}")
     private boolean creditCardValidationEnabled;
 
-    public PaymentRestController(PaymentService paymentService) {
+    public PaymentRestController(PaymentService paymentService,
+            PaymentNotificationEventPublisher notificationEventPublisher) {
         this.paymentService = paymentService;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     @PostMapping("/save")
@@ -59,6 +63,7 @@ public class PaymentRestController {
             payment.setPaymentTime(LocalDateTime.now());
             payment.setOrderStatus(OrderStatus.PAID);
             paymentService.save(payment);
+            notificationEventPublisher.publishPaymentCompleted(payment);
 
             return new ResponseEntity<>(payment, HttpStatus.OK);
         } catch (Exception e) {

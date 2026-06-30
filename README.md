@@ -166,7 +166,237 @@ http://localhost:9000/customers/payment-methods/{paymentMethodId}
 
 ```
 
-`````
+## Kafka Notification System
+
+Kafka is used for asynchronous notification delivery between the Order, Payment, and Notification services. This keeps order placement and payment processing decoupled from email delivery.
+
+### Kafka Infrastructure
+
+Docker Compose starts the Kafka broker and service databases:
+
+```text
+kafka -> localhost:9092
+```
+
+Start Kafka and the service databases from the project root:
+
+```bash
+docker compose up -d
+```
+
+### Kafka Topics
+
+The application uses these Kafka topics:
+
+| Topic               | Producer          | Consumer               | Event Type          | Purpose                                                               |
+| ------------------- | ----------------- | ---------------------- | ------------------- | --------------------------------------------------------------------- |
+| `order-created`     | `order-service`   | `notification-service` | `ORDER_CREATED`     | Creates an email notification when a customer places an order.        |
+| `payment-completed` | `payment-service` | `notification-service` | `PAYMENT_COMPLETED` | Creates an email notification when payment is completed successfully. |
+
+### Event Flow
+
+1. Customer places an order from the frontend.
+2. `order-service` saves the order in `order_db`.
+3. `order-service` publishes an `ORDER_CREATED` event to Kafka topic `order-created`.
+4. `order-service` calls `payment-service`.
+5. `payment-service` saves the payment as `PAID` in `payment_db`.
+6. `payment-service` publishes a `PAYMENT_COMPLETED` event to Kafka topic `payment-completed`.
+7. `notification-service` consumes both Kafka topics.
+8. `notification-service` saves notification records in `notification_db`.
+9. If SMTP email delivery is enabled, `notification-service` sends each email and marks the notification as `sent=true` only after successful delivery.
+
+Because `order-created` and `payment-completed` are separate Kafka topics, strict ordering between those two event types is not guaranteed. Both records are tied to the same `orderId`, and each record has its own `sent` and `sentAt` status.
+
+### Notification Event Payload
+
+The Kafka message contains the data needed by the Notification Service:
+
+```json
+{
+  "customerId": 11,
+  "orderId": 19,
+  "type": "ORDER_CREATED",
+  "channel": "EMAIL",
+  "message": "Your order has been placed successfully."
+}
+```
+
+### Notification API Verification
+
+After placing an order, open this URL in the browser or Postman:
+
+```text
+http://localhost:9000/notifications
+```
+
+You should see notification records similar to:
+
+```json
+[
+  {
+    "id": 34,
+    "customerId": 11,
+    "orderId": 19,
+    "type": "ORDER_CREATED",
+    "channel": "EMAIL",
+    "message": "Your order has been placed successfully.",
+    "sent": true,
+    "createdAt": "2026-07-01T03:52:31.167299",
+    "sentAt": "2026-07-01T03:52:56.541647"
+  },
+  {
+    "id": 33,
+    "customerId": 11,
+    "orderId": 19,
+    "type": "PAYMENT_COMPLETED",
+    "channel": "EMAIL",
+    "message": "Your payment has been completed successfully.",
+    "sent": true,
+    "createdAt": "2026-07-01T03:52:31.167299",
+    "sentAt": "2026-07-01T03:52:39.882177"
+  }
+]
+```
+
+To view notifications for one customer:
+
+```text
+http://localhost:9000/notifications/customer/{customerId}
+```
+
+Example:
+
+```text
+http://localhost:9000/notifications/customer/1
+```
+
+### What This Demonstrates
+
+- Asynchronous event-driven communication.
+- Decoupling between order/payment processing and notification delivery.
+- Kafka producer usage in `order-service` and `payment-service`.
+- Kafka consumer usage in `notification-service`.
+- Database-per-service ownership: notification records are stored in `notification_db`.
+- Eventual consistency: notification records are created after Kafka events are consumed.
+- SMTP integration: notifications are marked as sent only after email delivery succeeds.
+
+### Mailtrap Email Testing
+
+The project uses Mailtrap Email Sandbox for safe SMTP testing. Mailtrap captures emails instead of delivering them to real inboxes, so demo emails can be tested without using Gmail or sending real customer emails.
+
+Default behavior:
+
+```text
+notification.email.enabled=false
+```
+
+With this default, Kafka events create notification records, but `sent` remains `false` because SMTP delivery is disabled.
+
+To enable Mailtrap SMTP delivery, configure these environment variables before starting `notification-service`:
+
+```bat
+
+cd C:\Users\malsh\Desktop\Group9\online-food-delivery-system-microservices\notification-service
+
+set NOTIFICATION_EMAIL_ENABLED=true
+set NOTIFICATION_EMAIL_FROM=no-reply@food-delivery-demo.com
+set SMTP_HOST=sandbox.smtp.mailtrap.io
+set SMTP_PORT=587
+set SMTP_USERNAME=f554450a15b257
+set SMTP_PASSWORD=a8ceda8a2f0445
+set SMTP_AUTH=true
+set SMTP_STARTTLS_ENABLE=true
+```
+
+Then start the service:
+
+```bat
+mvn spring-boot:run
+```
+
+When SMTP delivery succeeds:
+
+```text
+notification-service consumes Kafka event
+-> saves notification in notification_db
+-> fetches customer email from customer-service
+-> sends email through Mailtrap SMTP
+-> sets sent=true and sentAt=current time
+```
+
+If email delivery fails, the notification remains saved with `sent=false`. This makes the failure visible in the frontend and API while preserving the Kafka event result in the database.
+
+Mailtrap free sandbox accounts may reject emails sent too quickly. The Notification Service sends emails one at a time, waits briefly between SMTP sends, and retries once to reduce Mailtrap rate-limit failures during demos.
+
+### Mailtrap Demo Checklist
+
+1. Start Docker infrastructure:
+
+```bash
+docker compose up -d
+```
+
+2. Start backend services:
+
+```text
+service-discovery
+api-gateway
+customer-service
+restaurant-service
+order-service
+payment-service
+notification-service
+```
+
+3. Start `notification-service` with Mailtrap SMTP variables enabled.
+4. Start the frontend and place a new customer order.
+5. Open the customer Notifications page.
+
+Expected frontend result:
+
+```text
+ORDER_CREATED        EMAIL        Sent
+PAYMENT_COMPLETED    EMAIL        Sent
+```
+
+Expected API result:
+
+```text
+http://localhost:9000/notifications/customer/{customerId}
+```
+
+Each latest notification should contain:
+
+```json
+{
+  "sent": true,
+  "sentAt": "2026-07-01T..."
+}
+```
+
+Expected Mailtrap inbox:
+
+```text
+Order placed #<orderId>
+Payment completed for order #<orderId>
+```
+
+### Switching To Real SMTP Later
+
+Mailtrap Sandbox captures emails for testing. If the SMTP settings are changed to a real provider, such as Gmail SMTP or a production email service, the same Notification Service code can deliver emails to real customer inboxes.
+
+Example SMTP variables for a real provider:
+
+```text
+NOTIFICATION_EMAIL_ENABLED=true
+NOTIFICATION_EMAIL_FROM=your-sender@example.com
+SMTP_HOST=your-smtp-host
+SMTP_PORT=587
+SMTP_USERNAME=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SMTP_AUTH=true
+SMTP_STARTTLS_ENABLE=true
+```
 
 ## Order Service
 
@@ -268,6 +498,7 @@ Expected payment response:
   "orderStatus": "PAID"
 }
 ```
+
 ## Notification Service
 
 The system uses a Spring Boot Notification Service to manage order and payment related notifications.
@@ -279,23 +510,24 @@ The system uses a Spring Boot Notification Service to manage order and payment r
 - Base URL: `http://localhost:9005`
 - API Gateway URL: `http://localhost:9000/notifications`
 
-The Notification Service stores notification records generated by other services. Currently, the Order Service creates notifications when an order is placed and when payment is completed.
+The Notification Service stores notification records generated from Kafka events. Order Service publishes an `ORDER_CREATED` event to the `order-created` topic after an order is saved. Payment Service publishes a `PAYMENT_COMPLETED` event to the `payment-completed` topic after a payment is saved as `PAID`. Notification Service consumes both topics, persists notification records in `notification_db`, sends email through SMTP when enabled, and marks records as sent only after successful delivery.
 
 ### Notification Service REST Endpoints
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| POST | `/notifications` | Create a notification |
-| GET | `/notifications` | Get all notifications |
-| GET | `/notifications/{id}` | Get a notification by ID |
-| GET | `/notifications/customer/{customerId}` | Get notifications for a customer |
-| GET | `/notifications/order/{orderId}` | Get notifications for an order |
-| PUT | `/notifications/{id}/sent` | Mark a notification as sent |
+| Method | Endpoint                               | Description                                                |
+| ------ | -------------------------------------- | ---------------------------------------------------------- |
+| POST   | `/notifications`                       | Create a notification                                      |
+| GET    | `/notifications`                       | Get all notifications                                      |
+| GET    | `/notifications/{id}`                  | Get a notification by ID                                   |
+| GET    | `/notifications/customer/{customerId}` | Get notifications for a customer                           |
+| GET    | `/notifications/order/{orderId}`       | Get notifications for an order                             |
+| PUT    | `/notifications/{id}/sent`             | Manually mark a notification as sent for testing/admin use |
 
 Notification APIs can be accessed through the API Gateway using:
 
 ```text
 http://localhost:9000/notifications
+```
 
 ## Services
 
@@ -307,27 +539,29 @@ http://localhost:9000/notifications
 | Restaurant Service   | Manages restaurant and menu-related features.                                  | 9002 |
 | Customer Service     | Manages customer profile, address, and payment information.                    | 9003 |
 | Payment Service      | Manages payment processing and payment history.                                | 9004 |
-| Notification Service | Manages order and payment notification records.                                | 9005 |
+| Notification Service | Consumes Kafka notification events and stores notification records.            | 9005 |
+| Kafka                | Event broker for order and payment notification events.                        | 9092 |
 
-## Docker Database Setup
+## Docker Infrastructure Setup
 
-The project uses Docker Compose to run PostgreSQL databases for the backend services. This allows each developer to start the required databases without manually creating them in a local PostgreSQL installation.
+The project uses Docker Compose to run PostgreSQL databases and Kafka. This allows each developer to start the required infrastructure without manually creating databases or installing a local Kafka broker.
 
 ### Required Tools
 
 - Docker Desktop
 - Docker Compose
 
-### Start Databases
+### Start Infrastructure
 
 Run this command from the project root folder:
 
-````bash
+```bash
 docker compose up -d
+```
 
 ### Functionality
 
-Docker is used to support the distributed nature of the system by providing isolated and reproducible infrastructure components. In this project, Docker Compose runs separate PostgreSQL database containers for the Restaurant Service and Customer Service.
+Docker is used to support the distributed nature of the system by providing isolated and reproducible infrastructure components. In this project, Docker Compose runs separate PostgreSQL database containers for each backend service and a Kafka broker for asynchronous notifications.
 
 Each microservice has its own database, which follows the database-per-service pattern commonly used in microservice architectures. Docker allows these databases to run as independent containers with separate ports, storage volumes, and configuration.
 
@@ -337,36 +571,32 @@ Docker helps the project by:
 
 - running separate database instances for different microservices
 - supporting the database-per-service architecture
+- running Kafka for event-driven notification delivery
 - reducing dependency on manually configured local databases
 - giving all developers a consistent environment
 - making the system easier to run, test, and demonstrate
 
 localhost:5433 -> restaurant-db container -> restaurant_db
 localhost:5434 -> customer-db container -> customer_db
-order-service  -> localhost:5435 -> order-db container-> order_dborder-service -> order_db
-payment-service -> payment_db
+order-service -> localhost:5435 -> order-db container -> order_db
+payment-service -> localhost:5436 -> payment-db container -> payment_db
 notification-service -> localhost:5437 -> notification-db -> notification_db
-
-Create these databases in PostgreSQL for Order and Payment services:
-
-```sql
-CREATE DATABASE order_db;
-CREATE DATABASE payment_db;
-```
+Kafka -> localhost:9092 -> kafka container
 
 ## Current Service Integration Flow
 
-The current backend flow demonstrates service-to-service communication through Eureka-registered service names.
+The current backend flow demonstrates synchronous service-to-service communication for payment plus asynchronous Kafka-based notification delivery.
 
 1. A client sends an order request through the API Gateway.
 2. API Gateway routes the request to Order Service.
 3. Order Service saves the order in `order_db`.
-4. Order Service creates an `ORDER_CREATED` notification through Notification Service.
+4. Order Service publishes an `ORDER_CREATED` event to Kafka topic `order-created`.
 5. Order Service calls Payment Service to process payment.
-6. Payment Service saves payment details in `payment_db` and returns `PAID` status.
+6. Payment Service saves payment details in `payment_db`, publishes a `PAYMENT_COMPLETED` event to Kafka topic `payment-completed`, and returns `PAID` status.
 7. Order Service updates the order status to `PAID`.
-8. Order Service creates a `PAYMENT_COMPLETED` notification through Notification Service.
-9. Notification records are stored in `notification_db`.
+8. Notification Service consumes both Kafka events.
+9. Notification Service stores notification records in `notification_db`.
+10. When Mailtrap SMTP is enabled, Notification Service sends the emails and updates `sent=true` with `sentAt`.
 
 ## Running Services Locally
 
@@ -403,4 +633,4 @@ mvn spring-boot:run
 cd notification-service
 mvn spring-boot:run
 
-`````
+```
