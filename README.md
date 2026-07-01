@@ -2,16 +2,119 @@
 
 Microservices-based online food delivery platform with API Gateway, service discovery, frontend UI, PostgreSQL, and Kafka support.
 
-## Planned modules
+## Introduction
 
-- API Gateway
-- Service Discovery
-- Order Service
-- Restaurant Service
-- Customer Management Service
-- Payment Service
-- Frontend
-- Infrastructure and Docker support
+The Online Food Delivery System is a distributed microservices application for browsing restaurants, managing menus, creating customer orders, processing payments, and sending order/payment notifications. The main goal is to demonstrate a production-style microservice architecture with independent backend services, service discovery, API gateway routing, database-per-service persistence, asynchronous Kafka messaging, and containerized deployment.
+
+Core features:
+
+- Customer registration/login and customer profile management
+- Restaurant registration/login and menu management
+- Customer order placement and restaurant order viewing
+- Payment processing for created orders
+- Kafka-based notification events for order creation and payment completion
+- Email notification delivery through Mailtrap SMTP sandbox
+- React frontend that communicates with backend services through the API Gateway
+- Full Docker Compose deployment for local production-like demonstration
+
+## Architecture
+
+### Architectural Diagram
+
+```mermaid
+flowchart LR
+    Browser[Frontend Browser\nlocalhost:5173] --> Frontend[Frontend Container\nReact + Nginx]
+    Frontend -->|/api| Gateway[API Gateway\nSpring Cloud Gateway\nlocalhost:9000]
+    Gateway --> Restaurant[Restaurant Service\nlocalhost:9002]
+    Gateway --> Customer[Customer Service\nlocalhost:9003]
+    Gateway --> Order[Order Service\nlocalhost:9001]
+    Gateway --> Payment[Payment Service\nlocalhost:9004]
+    Gateway --> Notification[Notification Service\nlocalhost:9005]
+
+    Restaurant --> RestaurantDb[(restaurant_db)]
+    Customer --> CustomerDb[(customer_db)]
+    Order --> OrderDb[(order_db)]
+    Payment --> PaymentDb[(payment_db)]
+    Notification --> NotificationDb[(notification_db)]
+
+    Order -->|REST payment request| Payment
+    Order -->|REST customer/restaurant lookup| Customer
+    Order -->|REST restaurant lookup| Restaurant
+    Payment -->|REST customer payment lookup| Customer
+    Notification -->|REST fetch customer email| Customer
+
+    Order -->|ORDER_CREATED| Kafka[(Kafka\norder-created)]
+    Payment -->|PAYMENT_COMPLETED| Kafka2[(Kafka\npayment-completed)]
+    Kafka --> Notification
+    Kafka2 --> Notification
+    Notification --> Mailtrap[Mailtrap Email Sandbox]
+
+    Restaurant -.registers.-> Eureka[Service Discovery\nNetflix Eureka\nlocalhost:8761]
+    Customer -.registers.-> Eureka
+    Order -.registers.-> Eureka
+    Payment -.registers.-> Eureka
+    Notification -.registers.-> Eureka
+    Gateway -.uses registry.-> Eureka
+```
+
+### Design Decisions
+
+- The application is split by business capability: restaurant/menu, customer, order, payment, and notification.
+- Each core service owns its own PostgreSQL database, following the database-per-service pattern.
+- Spring Cloud Netflix Eureka is used for service registration and discovery.
+- Spring Cloud Gateway is used as the single entry point for frontend/API clients.
+- Kafka is used for asynchronous notification events so order and payment processing are not tightly coupled to email delivery.
+- Docker Compose runs the full system in containers to provide a repeatable production-like demo environment.
+
+## Microservices Implementation Methods
+
+The backend is implemented with Spring Boot and Spring Cloud. The Netflix software stack is represented by Spring Cloud Netflix Eureka:
+
+- `service-discovery`: Eureka Server
+- `api-gateway`: Eureka Client and Spring Cloud Gateway
+- Backend services: Eureka Clients registered with the discovery server
+
+Supporting technologies:
+
+- PostgreSQL for service-owned persistence
+- Apache Kafka for asynchronous event-driven communication
+- Spring Data JPA for database access
+- React, TypeScript, Vite, Tailwind CSS, and Nginx for the frontend
+- Docker Compose for local deployment
+
+## User Interface
+
+The frontend is implemented with React, TypeScript, Vite, Tailwind CSS, and Nginx in Docker. It communicates with the backend through `/api` routes, which are proxied to the API Gateway. Customer-side screens support browsing restaurants, cart/checkout, order placement, and viewing notification delivery status. Restaurant-owner screens support restaurant/menu management and viewing restaurant orders.
+
+## API Testing Tools
+
+APIs were tested through the frontend, browser-based API checks, and Postman-style requests through the API Gateway. Examples:
+
+```text
+http://localhost:9000/restaurants
+http://localhost:9000/customers
+http://localhost:9000/order
+http://localhost:9000/payment
+http://localhost:9000/notifications/customer/{customerId}
+```
+
+Mailtrap was used to verify email notification delivery without sending real emails to external inboxes.
+
+## Source Code
+
+GitHub repository:
+
+```text
+https://github.com/MalshaPramodi/online-food-delivery-system-microservices
+```
+
+## Development Challenges
+
+- Configuring service-to-service communication across local Maven runs and Docker containers required environment-variable based URLs.
+- Kafka events were consumed from separate topics, so notification ordering across event types is eventually consistent rather than strictly ordered.
+- Mailtrap free sandbox rate limits rejected emails sent too quickly, so the notification service sends emails sequentially and retries once.
+- Full Docker Compose deployment required container-specific database, Kafka, and Eureka addresses while preserving local development defaults.
+- Frontend API routing had to work both in Vite development mode and in the Dockerized Nginx deployment.
 
 ## Service Discovery
 
@@ -20,7 +123,7 @@ The system uses a Spring Cloud Netflix Eureka server for service discovery.
 - Service name: `service-discovery`
 - Port: `8761`
 - Dashboard: `http://localhost:8761`
-- Other backend services will register with this server later.
+- Backend services register with this server and appear on the Eureka dashboard.
 
 ## API Gateway
 
@@ -30,7 +133,7 @@ The system uses a Spring Cloud Gateway service as the single entry point for cli
 - Port: `9000`
 - Eureka registration: `http://localhost:8761/eureka/`
 - Base URL: `http://localhost:9000`
-- Backend service routes will be added through Eureka-registered service names.
+- Backend service routes are configured through Eureka-registered service names.
 
 ## Restaurant Service
 
@@ -82,9 +185,10 @@ Example create request:
 
 Food Menu APIs can be accessed through the API Gateway using:
 
-````text
+```text
 http://localhost:9000/restaurants/{restaurantId}/menus
 http://localhost:9000/restaurants/menus/{menuId}
+```
 
 Example create request:
 
@@ -93,10 +197,10 @@ Example create request:
   "foodName": "Chicken Pizza",
   "foodDescription": "Large chicken pizza with cheese",
   "foodCategory": "Pizza",
-  "foodPrice": 2500.00,
+  "foodPrice": 2500.0,
   "available": true
 }
-````
+```
 
 ## Customer Service
 
@@ -295,23 +399,22 @@ With this default, Kafka events create notification records, but `sent` remains 
 To enable Mailtrap SMTP delivery, configure these environment variables before starting `notification-service`:
 
 ```bat
-
-cd C:\Users\malsh\Desktop\Group9\online-food-delivery-system-microservices\notification-service
-
 set NOTIFICATION_EMAIL_ENABLED=true
 set NOTIFICATION_EMAIL_FROM=no-reply@food-delivery-demo.com
 set SMTP_HOST=sandbox.smtp.mailtrap.io
 set SMTP_PORT=587
-set SMTP_USERNAME=f554450a15b257
-set SMTP_PASSWORD=a8ceda8a2f0445
+set SMTP_USERNAME=your_mailtrap_username
+set SMTP_PASSWORD=your_mailtrap_password
 set SMTP_AUTH=true
 set SMTP_STARTTLS_ENABLE=true
 ```
 
-Then start the service:
+For Docker Compose, these values can also be stored in a local `.env` file. The `.env` file is ignored by Git and should not be committed because it contains secrets.
+
+Then start the full system:
 
 ```bat
-mvn spring-boot:run
+docker compose up -d --build
 ```
 
 When SMTP delivery succeeds:
@@ -330,27 +433,21 @@ Mailtrap free sandbox accounts may reject emails sent too quickly. The Notificat
 
 ### Mailtrap Demo Checklist
 
-1. Start Docker infrastructure:
+1. Start the full Docker Compose system:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-2. Start backend services:
+2. Confirm containers are running:
 
-```text
-service-discovery
-api-gateway
-customer-service
-restaurant-service
-order-service
-payment-service
-notification-service
+```bat
+docker compose ps
 ```
 
-3. Start `notification-service` with Mailtrap SMTP variables enabled.
-4. Start the frontend and place a new customer order.
-5. Open the customer Notifications page.
+3. Open the frontend and place a new customer order.
+4. Open the customer Notifications page.
+5. Check the Mailtrap inbox.
 
 Expected frontend result:
 
@@ -544,34 +641,155 @@ http://localhost:9000/notifications
 
 ## Docker Infrastructure Setup
 
-The project uses Docker Compose to run PostgreSQL databases and Kafka. This allows each developer to start the required infrastructure without manually creating databases or installing a local Kafka broker.
+The project uses Docker Compose to run the full distributed system stack for demos. Compose starts PostgreSQL databases, Kafka, Service Discovery, API Gateway, all backend services, and the frontend.
 
 ### Required Tools
 
 - Docker Desktop
 - Docker Compose
 
-### Start Infrastructure
+### Start Full System
 
 Run this command from the project root folder:
 
 ```bash
+docker compose up -d --build
+```
+
+For a notification email demo with Mailtrap, set these variables in the same terminal before running Compose:
+
+```bat
+set NOTIFICATION_EMAIL_ENABLED=true
+set NOTIFICATION_EMAIL_FROM=no-reply@food-delivery-demo.com
+set SMTP_HOST=sandbox.smtp.mailtrap.io
+set SMTP_PORT=587
+set SMTP_USERNAME=your_mailtrap_username
+set SMTP_PASSWORD=your_mailtrap_password
+set SMTP_AUTH=true
+set SMTP_STARTTLS_ENABLE=true
+
+docker compose up -d --build
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+API Gateway:
+
+```text
+http://localhost:9000
+```
+
+Eureka dashboard:
+
+```text
+http://localhost:8761
+```
+
+To stop the system:
+
+```bash
+docker compose down
+```
+
+### Important Docker Commands
+
+Run these commands from the project root:
+
+```bat
 docker compose up -d
 ```
 
+Starts the full application using existing images.
+
+```bat
+docker compose up -d --build
+```
+
+Rebuilds images and starts the full application. Use this after code or Dockerfile changes.
+
+```bat
+docker compose ps
+```
+
+Shows all containers and their current status.
+
+```bat
+docker compose logs -f service-name
+```
+
+Shows live logs for one service. Example:
+
+```bat
+docker compose logs -f notification-service
+```
+
+```bat
+docker compose restart service-name
+```
+
+Restarts one service. Example:
+
+```bat
+docker compose restart notification-service
+```
+
+```bat
+docker compose down
+```
+
+Stops and removes the running containers, but keeps named database volumes.
+
+```bat
+docker compose down -v
+```
+
+Stops containers and removes database volumes. Use this only when you want a clean database reset.
+
+```bat
+docker compose exec notification-service printenv SMTP_HOST
+docker compose exec notification-service printenv NOTIFICATION_EMAIL_ENABLED
+```
+
+Checks whether Mailtrap SMTP environment variables reached the notification container.
+
+### Production Deployment Suggestion
+
+For a production deployment, each service can be built as a Docker image and pushed to a container registry such as Docker Hub, GitHub Container Registry, AWS ECR, Azure Container Registry, or Google Artifact Registry.
+
+Recommended cloud deployment approach:
+
+1. Build Docker images for each service.
+2. Push images to a private container registry.
+3. Deploy services to a container orchestration platform such as Kubernetes, AWS ECS, Azure Container Apps, or Google Cloud Run.
+4. Use managed PostgreSQL databases instead of local database containers.
+5. Use a managed Kafka service such as Confluent Cloud, AWS MSK, or Azure Event Hubs for Kafka-compatible messaging.
+6. Store SMTP credentials and database passwords in a secret manager such as Kubernetes Secrets, AWS Secrets Manager, Azure Key Vault, or GCP Secret Manager.
+7. Expose only the frontend and API Gateway publicly; keep databases, Kafka, and internal services private.
+8. Add monitoring, centralized logs, health checks, and backup policies.
+
+For this mini project evaluation, Docker Compose is used as the local production-like deployment because it runs every service in an isolated container and demonstrates service discovery, API gateway routing, independent databases, Kafka messaging, and frontend-to-backend integration.
+
 ### Functionality
 
-Docker is used to support the distributed nature of the system by providing isolated and reproducible infrastructure components. In this project, Docker Compose runs separate PostgreSQL database containers for each backend service and a Kafka broker for asynchronous notifications.
+Docker is used to support the distributed nature of the system by providing isolated and reproducible infrastructure components. In this project, Docker Compose runs separate PostgreSQL database containers for each backend service, a Kafka broker for asynchronous notifications, Eureka service discovery, API Gateway, backend service containers, and the frontend container.
 
 Each microservice has its own database, which follows the database-per-service pattern commonly used in microservice architectures. Docker allows these databases to run as independent containers with separate ports, storage volumes, and configuration.
 
-In the current implementation, the Spring Boot services run locally using Maven, while the database layer runs in Docker. This setup helps demonstrate distributed system principles such as service independence, isolated data ownership, environment consistency, and infrastructure reproducibility.
+The full Compose setup helps demonstrate distributed system principles such as service independence, isolated data ownership, environment consistency, service discovery, API gateway routing, asynchronous messaging, and infrastructure reproducibility.
 
 Docker helps the project by:
 
 - running separate database instances for different microservices
 - supporting the database-per-service architecture
 - running Kafka for event-driven notification delivery
+- running Eureka for service discovery
+- running API Gateway as the single backend entry point
+- running all backend services as independent containers
+- running the frontend as a container with `/api` requests proxied to API Gateway
 - reducing dependency on manually configured local databases
 - giving all developers a consistent environment
 - making the system easier to run, test, and demonstrate
@@ -581,7 +799,11 @@ localhost:5434 -> customer-db container -> customer_db
 order-service -> localhost:5435 -> order-db container -> order_db
 payment-service -> localhost:5436 -> payment-db container -> payment_db
 notification-service -> localhost:5437 -> notification-db -> notification_db
-Kafka -> localhost:9092 -> kafka container
+Kafka external access -> localhost:9092 -> kafka container
+Kafka internal access -> kafka:29092 -> kafka container
+Service Discovery -> localhost:8761 -> service-discovery container
+API Gateway -> localhost:9000 -> api-gateway container
+Frontend -> localhost:5173 -> frontend container
 
 ## Current Service Integration Flow
 
@@ -600,7 +822,13 @@ The current backend flow demonstrates synchronous service-to-service communicati
 
 ## Running Services Locally
 
-Run each service from its own folder.
+For development, services can still be run locally with Maven while Docker runs the databases and Kafka. Start infrastructure first:
+
+```bash
+docker compose up -d restaurant-db customer-db order-db payment-db notification-db kafka
+```
+
+Then run each service from its own folder.
 
 ```bash
 ### Service Discovery
