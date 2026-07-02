@@ -48,8 +48,14 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'FINISHED'
 
+export type CreateOrderResponse = {
+  orderId: number
+  orderStatus: OrderStatus
+  message: string
+}
+
 export async function createOrder(input: CreateOrderInput) {
-  const response = await orderApi.post<string>('/order/create', input)
+  const response = await orderApi.post<CreateOrderResponse>('/order/create', input)
   return response.data
 }
 

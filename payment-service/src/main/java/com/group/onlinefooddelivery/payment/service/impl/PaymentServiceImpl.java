@@ -3,6 +3,7 @@ package com.group.onlinefooddelivery.payment.service.impl;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RestTemplate restTemplate;
     private final PaymentRepository paymentRepository;
 
-    public PaymentServiceImpl(RestTemplate restTemplate, PaymentRepository paymentRepository) {
+    public PaymentServiceImpl(@Qualifier("restTemplate") RestTemplate restTemplate, PaymentRepository paymentRepository) {
         this.restTemplate = restTemplate;
         this.paymentRepository = paymentRepository;
     }
@@ -41,6 +42,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Payment getPaymentById(Long id) {
         return paymentRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Payment getPaymentByStripeCheckoutSessionId(String stripeCheckoutSessionId) {
+        return paymentRepository.findByStripeCheckoutSessionId(stripeCheckoutSessionId);
     }
 
     @Override

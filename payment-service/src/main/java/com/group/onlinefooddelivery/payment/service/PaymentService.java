@@ -13,6 +13,8 @@ public interface PaymentService {
 
     Payment getPaymentById(Long id);
 
+    Payment getPaymentByStripeCheckoutSessionId(String stripeCheckoutSessionId);
+
     boolean isCreditCardValid(CreditCard creditCard);
 
     CreditCard getCrediCardDetails(Long customerId);

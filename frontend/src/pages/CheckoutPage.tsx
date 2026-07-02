@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useCart } from '../features/cart/CartContext'
 import { createOrder } from '../api/orderApi'
 import { useAuth } from '../features/auth/AuthContext'
+import { createStripeCheckoutSession } from '../api/paymentApi'
 
 export function CheckoutPage() {
-  const { items, subtotal, restaurantId, restaurantName, clearCart } = useCart()
-  const navigate = useNavigate()
+  const { items, subtotal, restaurantId, restaurantName } = useCart()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const deliveryFee = items.length > 0 ? 2.5 : 0
@@ -40,7 +39,7 @@ export function CheckoutPage() {
     setErrorMessage('')
 
     try {
-      await createOrder({
+      const order = await createOrder({
         userId: user.id,
         restaurantId: Number(restaurantId),
         restaurantName,
@@ -53,10 +52,16 @@ export function CheckoutPage() {
         })),
       })
 
-      clearCart()
-      navigate('/my-orders')
+      const checkoutSession = await createStripeCheckoutSession({
+        orderId: order.orderId,
+        customerId: user.id,
+        totalPrice: Number(total.toFixed(2)),
+        customerEmail: user.email,
+      })
+
+      window.location.href = checkoutSession.url
     } catch {
-      setErrorMessage('Unable to place order. Please try again.')
+      setErrorMessage('Unable to start Stripe checkout. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -93,17 +98,11 @@ export function CheckoutPage() {
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">Payment method</h2>
-          <div className="mt-4 grid gap-3">
-            <input
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
-              placeholder="Card holder name"
-            />
-            <input
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
-              placeholder="Card number"
-            />
-          </div>
+          <h2 className="text-base font-semibold text-slate-900">Stripe payment</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            You will be redirected to Stripe Checkout to enter card details
+            securely. This application does not store raw card information.
+          </p>
         </div>
       </article>
 
@@ -138,7 +137,7 @@ export function CheckoutPage() {
           disabled={isSubmitting}
           className="mt-5 w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isSubmitting ? 'Placing order...' : 'Place order'}
+          {isSubmitting ? 'Opening Stripe checkout...' : 'Pay with Stripe'}
         </button>
       </aside>
     </section>

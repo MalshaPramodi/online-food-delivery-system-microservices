@@ -11,4 +11,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("from Payment p where p.orderId = ?1")
     List<Payment> findPaymentHistoryByOrderId(Long orderId);
+
+    Payment findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
 }

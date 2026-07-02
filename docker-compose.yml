@@ -179,6 +179,7 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:9002/restaurants/
       PAYMENT_SERVICE_URL: http://payment-service:9004/payment/save
       CUSTOMER_SERVICE_URL: http://customer-service:9003/customers/
+      PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-simulated}
     depends_on:
       order-db:
         condition: service_healthy
@@ -207,6 +208,11 @@ services:
       PAYMENT_DB_PASSWORD: postgres
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       CUSTOMER_PAYMENT_METHODS_URL: http://customer-service:9003/customers/
+      ORDER_STATUS_UPDATE_URL: http://order-service:9001/order/
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_CURRENCY: ${STRIPE_CURRENCY:-usd}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/checkout/success?session_id={CHECKOUT_SESSION_ID}}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/checkout/cancel}
     depends_on:
       payment-db:
         condition: service_healthy

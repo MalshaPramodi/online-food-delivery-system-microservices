@@ -39,4 +39,11 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
+    private String paymentProvider;
+
+    private String providerReference;
+
+    @Column(unique = true)
+    private String stripeCheckoutSessionId;
 }

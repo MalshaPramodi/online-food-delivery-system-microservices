@@ -5,6 +5,8 @@ import { RestaurantOwnerShell } from '../layout/RestaurantOwnerShell'
 import { RequireAuth } from '../features/auth/RequireAuth'
 import { CartPage } from '../pages/CartPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
+import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
+import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { CustomerNotificationsPage } from '../pages/CustomerNotificationsPage'
 import { CustomerOrdersPage } from '../pages/CustomerOrdersPage'
 import { CustomerRestaurantsPage } from '../pages/CustomerRestaurantsPage'
@@ -47,6 +49,8 @@ export function AppRouter() {
           <Route path="/restaurants/:id" element={<RestaurantDetailsPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+          <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
           <Route path="/my-orders" element={<CustomerOrdersPage />} />
           <Route path="/notifications" element={<CustomerNotificationsPage />} />
         </Route>

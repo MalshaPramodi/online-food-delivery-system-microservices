@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.PutMapping;
+import com.group.onlinefooddelivery.order.dto.OrderCreationResponse;
 import com.group.onlinefooddelivery.order.dto.OrderStatusUpdateRequest;
 import com.group.onlinefooddelivery.order.domain.Order;
 import com.group.onlinefooddelivery.order.domain.OrderStatus;
@@ -30,13 +31,16 @@ public class OrderRestController {
     @Value("${restaurant.microservice.url}")
     private String restaurantServiceUrl;
 
+    @Value("${payment.gateway.mode:simulated}")
+    private String paymentGatewayMode;
+
     public OrderRestController(OrderService orderService, RestTemplate restTemplate) {
         this.orderService = orderService;
         this.restTemplate = restTemplate;
     }
 
     @PostMapping("/create")
-    public String placeOrder(@Valid @RequestBody Order order) {
+    public OrderCreationResponse placeOrder(@Valid @RequestBody Order order) {
         order.setId(null);
         order.setOrderStatus(OrderStatus.CREATED);
 
@@ -44,14 +48,19 @@ public class OrderRestController {
 
         orderService.sendOrderCreatedNotification(savedOrder);
 
-        Payment paymentResponse = orderService.getPaymentResponse(savedOrder);
+        if (!"stripe".equalsIgnoreCase(paymentGatewayMode)) {
+            Payment paymentResponse = orderService.getPaymentResponse(savedOrder);
 
-        if (paymentResponse != null && paymentResponse.getOrderStatus() == OrderStatus.PAID) {
-            savedOrder.setOrderStatus(OrderStatus.PAID);
-            orderService.saveOrder(savedOrder);
+            if (paymentResponse != null && paymentResponse.getOrderStatus() == OrderStatus.PAID) {
+                savedOrder.setOrderStatus(OrderStatus.PAID);
+                orderService.saveOrder(savedOrder);
+            }
         }
 
-        return "Order has been placed successfully";
+        return new OrderCreationResponse(
+                savedOrder.getId(),
+                savedOrder.getOrderStatus(),
+                "Order has been placed successfully");
     }
 
     @GetMapping

@@ -18,6 +18,11 @@ public class PaymentConfig {
     }
 
     @Bean
+    public RestTemplate stripeRestTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
     public NewTopic paymentCompletedTopic(@Value("${app.kafka.topic.payment-completed}") String topicName) {
         return TopicBuilder.name(topicName).partitions(1).replicas(1).build();
     }
