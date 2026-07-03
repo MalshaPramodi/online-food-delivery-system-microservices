@@ -2,6 +2,8 @@
 
 Microservices-based online food delivery platform built with Spring Boot, Spring Cloud Netflix Eureka, Spring Cloud Gateway, PostgreSQL, Kafka, React frontend UI and Docker Compose.
 
+![UI Look and Feel](UI.png)
+
 ## Introduction
 
 The Online Food Delivery System is a distributed microservices application for managing the main workflow of a food delivery platform. Customers can browse restaurants, add menu items to a cart, place orders, complete payment and view order/payment notifications. Restaurant owners can manage restaurant menu data and view incoming orders. Admin/operations users can inspect restaurant, customer, order, payment, in a dashboard with inspection tables for all services' data .
@@ -901,5 +903,3 @@ https://github.com/MalshaPramodi/online-food-delivery-system-microservices.git
 11. Show Mailtrap captured emails.
 12. Show restaurant owner order view.
 13. Show API response from `http://localhost:9000/notifications/customer/{customerId}`.
-
-![UI Look and Feel](UI.png)
