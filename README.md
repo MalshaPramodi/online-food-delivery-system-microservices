@@ -19,7 +19,9 @@ Core features:
 
 ## Architecture
 
-### Architectural Diagram
+![High-level architecture diagram](food-delivery-architecture.png)
+
+### Service Communication and Data Flow
 
 ```mermaid
 flowchart LR
