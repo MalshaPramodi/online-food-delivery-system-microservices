@@ -1,8 +1,7 @@
 # Online Food Delivery System
 
-Microservices-based online food delivery platform built with Spring Boot, Spring Cloud Netflix Eureka, Spring Cloud Gateway, PostgreSQL, Kafka, React frontend UI and Docker Compose.
-
-![UI Look and Feel](UI.png)
+MiMicroservices-based online food delivery platform built with Spring Boot, Spring Cloud Netflix Eureka, Spring Cloud Gateway, PostgreSQL, Kafka, React frontend UI and Docker Compose.
+UI Look and Feel](UI.png)
 
 ## Introduction
 
@@ -690,29 +689,9 @@ Example response:
 
 ```json
 {
-  "id": 1,
-  "userId": 1,
-  "restaurantId": 1,
-  "restaurantName": "Pizza Palace",
-  "orderTime": "2026-05-23T20:00:00",
+  "orderId": 30,
   "orderStatus": "CREATED",
-  "totalPrice": 3000.0,
-  "foodItems": [
-    {
-      "id": 1,
-      "foodMenuId": 1,
-      "foodName": "Chicken Pizza",
-      "foodPrice": 2500.0,
-      "quantity": 1
-    },
-    {
-      "id": 2,
-      "foodMenuId": 2,
-      "foodName": "Coke",
-      "foodPrice": 500.0,
-      "quantity": 1
-    }
-  ]
+  "message": "Order has been placed successfully"
 }
 ```
 
